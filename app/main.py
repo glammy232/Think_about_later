@@ -205,30 +205,18 @@ def ask_assistant(group_id: str, data: AssistantRequest):
     return AssistantResponse(answer=answer)
 
 
-@app.get("/api/groups/{group_id}/notifications", tags=["other"])
-def notifications(group_id: str):
-    require_group(group_id)
-    return [{"id": "notification-1", "text": "Добавлена новая операция", "read": False}]
-
-
-@app.get("/api/groups/{group_id}/messages", tags=["other"])
-def messages(group_id: str):
-    require_group(group_id)
-    return []
-
-
 @app.get("/api/users/{user_id}/settings", tags=["settings"])
 def get_settings(user_id: str):
     if not storage.get_user(user_id):
         raise HTTPException(status_code=404, detail="User not found")
-    return storage.settings.get(user_id, {"notifications_enabled": True, "currency": "RUB"})
+    return storage.settings.get(user_id, {"currency": "RUB"})
 
 
 @app.patch("/api/users/{user_id}/settings", tags=["settings"])
 def update_settings(user_id: str, data: SettingsUpdate):
     if not storage.get_user(user_id):
         raise HTTPException(status_code=404, detail="User not found")
-    current = storage.settings.get(user_id, {"notifications_enabled": True, "currency": "RUB"})
+    current = storage.settings.get(user_id, {"currency": "RUB"})
     current.update(data.model_dump(exclude_none=True))
     storage.settings[user_id] = current
     return current

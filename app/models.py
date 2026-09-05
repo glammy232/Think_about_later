@@ -191,5 +191,4 @@ class AssistantResponse(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
-    notifications_enabled: bool | None = None
     currency: str | None = Field(default=None, max_length=3)

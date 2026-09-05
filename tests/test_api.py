@@ -143,3 +143,15 @@ def test_payment_reduces_calculated_debt():
     )
     assert response.status_code == 201
     assert response.json()["amount"] == min(100, before)
+
+
+def test_settings_only_change_currency():
+    response = client.patch("/api/users/user-1/settings", json={"currency": "USD"})
+    assert response.status_code == 200
+    assert response.json() == {"currency": "USD"}
+
+
+def test_notifications_and_messages_are_not_in_api():
+    paths = client.get("/openapi.json").json()["paths"]
+    assert "/api/groups/{group_id}/notifications" not in paths
+    assert "/api/groups/{group_id}/messages" not in paths
