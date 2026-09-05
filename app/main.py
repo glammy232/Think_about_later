@@ -43,6 +43,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+SUGGESTED_CATEGORIES = [
+    {"id": "groceries", "name": "Продукты"},
+    {"id": "utilities", "name": "Коммунальные услуги"},
+    {"id": "transport", "name": "Транспорт"},
+    {"id": "cafes", "name": "Кафе и рестораны"},
+    {"id": "health", "name": "Здоровье"},
+    {"id": "home", "name": "Дом"},
+    {"id": "entertainment", "name": "Развлечения"},
+    {"id": "subscriptions", "name": "Подписки"},
+    {"id": "education", "name": "Образование"},
+    {"id": "other", "name": "Другое"},
+]
+
 
 def require_group(group_id: str):
     group = storage.get_group(group_id)
@@ -79,6 +92,21 @@ def get_group(group_id: str):
 def get_members(group_id: str):
     require_group(group_id)
     return storage.list_users(group_id)
+
+
+@app.get("/api/groups/{group_id}/categories", tags=["operations"])
+def get_categories(group_id: str):
+    require_group(group_id)
+    suggested_names = {item["name"].casefold() for item in SUGGESTED_CATEGORIES}
+    custom = sorted(
+        {
+            operation.category
+            for operation in storage.list_operations(group_id)
+            if operation.category.casefold() not in suggested_names
+        },
+        key=str.casefold,
+    )
+    return {"suggested": SUGGESTED_CATEGORIES, "custom": custom}
 
 
 @app.patch("/api/groups/{group_id}/settings", tags=["settings"])

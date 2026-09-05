@@ -150,9 +150,12 @@ class InMemoryStorage:
 
     def create_operation(self, group_id: str, data: OperationCreate) -> Operation:
         if data.type == OperationType.expense:
-            shares = data.shares or self._equal_shares(
-                data.amount, data.participant_ids
-            )
+            if data.split_type == SplitType.equal:
+                shares = self._equal_shares(data.amount, data.participant_ids)
+            elif data.split_type == SplitType.percentage:
+                shares = self._percentage_shares(data.amount, data.shares or [])
+            else:
+                shares = self._amount_shares(data.amount, data.shares or [])
         else:
             shares = []
         operation = Operation(
@@ -168,11 +171,55 @@ class InMemoryStorage:
     def _equal_shares(amount: float, participant_ids: list[str]) -> list[ShareInput]:
         cents = round(amount * 100)
         base, remainder = divmod(cents, len(participant_ids))
+        shares = [
+            (user_id, (base + (1 if index < remainder else 0)) / 100)
+            for index, user_id in enumerate(participant_ids)
+        ]
+        return InMemoryStorage._with_percentages(amount, shares)
+
+    @staticmethod
+    def _amount_shares(
+        amount: float, input_shares: list[ShareInput]
+    ) -> list[ShareInput]:
+        shares = [(share.user_id, float(share.amount or 0)) for share in input_shares]
+        return InMemoryStorage._with_percentages(amount, shares)
+
+    @staticmethod
+    def _percentage_shares(
+        amount: float, input_shares: list[ShareInput]
+    ) -> list[ShareInput]:
+        total_cents = round(amount * 100)
+        allocated_cents = 0
+        shares: list[tuple[str, float]] = []
+        for index, share in enumerate(input_shares):
+            if index == len(input_shares) - 1:
+                share_cents = total_cents - allocated_cents
+            else:
+                share_cents = round(total_cents * float(share.percentage or 0) / 100)
+                allocated_cents += share_cents
+            shares.append((share.user_id, share_cents / 100))
+        return InMemoryStorage._with_percentages(amount, shares)
+
+    @staticmethod
+    def _with_percentages(
+        total_amount: float, shares: list[tuple[str, float]]
+    ) -> list[ShareInput]:
+        percentages: list[float] = []
+        allocated_percentage = 0.0
+        for index, (_, share_amount) in enumerate(shares):
+            if index == len(shares) - 1:
+                percentage = round(100 - allocated_percentage, 2)
+            else:
+                percentage = round(share_amount / total_amount * 100, 2)
+                allocated_percentage = round(allocated_percentage + percentage, 2)
+            percentages.append(percentage)
         return [
             ShareInput(
-                user_id=user_id, amount=(base + (1 if index < remainder else 0)) / 100
+                user_id=user_id,
+                amount=share_amount,
+                percentage=percentages[index],
             )
-            for index, user_id in enumerate(participant_ids)
+            for index, (user_id, share_amount) in enumerate(shares)
         ]
 
     def delete_operation(self, operation_id: str) -> bool:

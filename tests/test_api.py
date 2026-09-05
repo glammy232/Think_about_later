@@ -132,9 +132,119 @@ def test_custom_split_creates_exact_debts_for_each_participant():
     )
     assert response.status_code == 201
     assert response.json()["shares"] == [
-        {"user_id": "user-2", "amount": 3000.0},
-        {"user_id": "user-3", "amount": 2000.0},
+        {"user_id": "user-2", "amount": 3000.0, "percentage": 60.0},
+        {"user_id": "user-3", "amount": 2000.0, "percentage": 40.0},
     ]
+
+
+def test_equal_split_returns_amounts_and_percentages():
+    response = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            "type": "expense",
+            "title": "Пицца",
+            "amount": 3000,
+            "category": "Кафе и рестораны",
+            "payer_id": "user-1",
+            "participant_ids": ["user-1", "user-2", "user-3"],
+            "split_type": "equal",
+        },
+    )
+    assert response.status_code == 201
+    shares = response.json()["shares"]
+    assert [share["amount"] for share in shares] == [1000.0, 1000.0, 1000.0]
+    assert sum(share["percentage"] for share in shares) == 100
+
+
+def test_percentage_split_calculates_exact_amounts():
+    response = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            "type": "expense",
+            "title": "Аренда",
+            "amount": 10000,
+            "category": "Дом",
+            "payer_id": "user-1",
+            "participant_ids": ["user-1", "user-2", "user-3"],
+            "split_type": "percentage",
+            "shares": [
+                {"user_id": "user-1", "percentage": 20},
+                {"user_id": "user-2", "percentage": 30},
+                {"user_id": "user-3", "percentage": 50},
+            ],
+        },
+    )
+    assert response.status_code == 201
+    shares = response.json()["shares"]
+    assert [share["amount"] for share in shares] == [2000.0, 3000.0, 5000.0]
+    assert [share["percentage"] for share in shares] == [20.0, 30.0, 50.0]
+
+
+def test_percentage_split_rounding_keeps_full_amount():
+    response = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            "type": "expense",
+            "title": "Деление с копейками",
+            "amount": 100,
+            "category": "Другое",
+            "payer_id": "user-1",
+            "participant_ids": ["user-1", "user-2", "user-3"],
+            "split_type": "percentage",
+            "shares": [
+                {"user_id": "user-1", "percentage": 33.33},
+                {"user_id": "user-2", "percentage": 33.33},
+                {"user_id": "user-3", "percentage": 33.34},
+            ],
+        },
+    )
+    assert response.status_code == 201
+    shares = response.json()["shares"]
+    assert [share["amount"] for share in shares] == [33.33, 33.33, 33.34]
+    assert sum(share["amount"] for share in shares) == 100
+    assert sum(share["percentage"] for share in shares) == 100
+
+
+def test_percentage_split_must_total_one_hundred():
+    response = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            "type": "expense",
+            "title": "Аренда",
+            "amount": 10000,
+            "category": "Дом",
+            "payer_id": "user-1",
+            "participant_ids": ["user-1", "user-2"],
+            "split_type": "percentage",
+            "shares": [
+                {"user_id": "user-1", "percentage": 40},
+                {"user_id": "user-2", "percentage": 50},
+            ],
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_suggested_and_custom_categories():
+    categories = client.get("/api/groups/group-1/categories")
+    assert categories.status_code == 200
+    assert "Продукты" in [item["name"] for item in categories.json()["suggested"]]
+
+    custom_operation = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            "type": "expense",
+            "title": "Корм",
+            "amount": 500,
+            "category": "Питомцы",
+            "payer_id": "user-1",
+            "participant_ids": ["user-1"],
+            "split_type": "equal",
+        },
+    )
+    assert custom_operation.status_code == 201
+    categories = client.get("/api/groups/group-1/categories").json()
+    assert "Питомцы" in categories["custom"]
 
 
 @pytest.mark.parametrize(

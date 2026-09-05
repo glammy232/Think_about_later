@@ -21,7 +21,7 @@ def calculate_net_balances(storage: Storage, group_id: str) -> dict[str, float]:
             continue
         balances[operation.payer_id] += operation.amount
         for share in operation.shares:
-            balances[share.user_id] -= share.amount
+            balances[share.user_id] -= share.amount or 0
     for debt in storage.list_direct_debts(group_id):
         if debt.status != DebtStatus.active:
             continue

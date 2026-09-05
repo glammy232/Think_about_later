@@ -12,6 +12,7 @@ from pydantic import (
 )
 
 Money = Annotated[float, Field(ge=0)]
+Percentage = Annotated[float, Field(ge=0, le=100)]
 Name80 = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)
 ]
@@ -35,6 +36,7 @@ class OperationType(StrEnum):
 class SplitType(StrEnum):
     equal = "equal"
     custom = "custom"
+    percentage = "percentage"
 
 
 class DebtStatus(StrEnum):
@@ -67,7 +69,8 @@ class Group(BaseModel):
 
 class ShareInput(BaseModel):
     user_id: str
-    amount: Money
+    amount: Money | None = None
+    percentage: Percentage | None = None
 
 
 class OperationCreate(BaseModel):
@@ -104,8 +107,23 @@ class OperationCreate(BaseModel):
                 raise ValueError("shares must not contain duplicate users")
             if {s.user_id for s in self.shares} != set(self.participant_ids):
                 raise ValueError("shares must match participant_ids")
-            if abs(sum(s.amount for s in self.shares) - self.amount) > 0.01:
+            if any(share.amount is None for share in self.shares):
+                raise ValueError("amount is required for every custom share")
+            if abs(sum(s.amount or 0 for s in self.shares) - self.amount) > 0.01:
                 raise ValueError("shares total must equal operation amount")
+        if self.split_type == SplitType.percentage:
+            if not self.shares:
+                raise ValueError("shares are required for percentage split")
+            share_user_ids = [share.user_id for share in self.shares]
+            if len(share_user_ids) != len(set(share_user_ids)):
+                raise ValueError("shares must not contain duplicate users")
+            if set(share_user_ids) != set(self.participant_ids):
+                raise ValueError("shares must match participant_ids")
+            if any(share.percentage is None for share in self.shares):
+                raise ValueError("percentage is required for every percentage share")
+            total_percentage = sum(share.percentage or 0 for share in self.shares)
+            if abs(total_percentage - 100) > 0.01:
+                raise ValueError("share percentages total must equal 100")
         return self
 
 
