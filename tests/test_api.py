@@ -145,10 +145,17 @@ def test_payment_reduces_calculated_debt():
     assert response.json()["amount"] == min(100, before)
 
 
-def test_settings_only_change_currency():
-    response = client.patch("/api/users/user-1/settings", json={"currency": "USD"})
+def test_settings_change_name_and_currency_everywhere():
+    response = client.patch(
+        "/api/users/user-1/settings",
+        json={"name": "Александр", "currency": "USD"},
+    )
     assert response.status_code == 200
-    assert response.json() == {"currency": "USD"}
+    assert response.json() == {"name": "Александр", "currency": "USD"}
+    members = client.get("/api/groups/group-1/members").json()
+    assert next(item for item in members if item["id"] == "user-1")["name"] == "Александр"
+    balances = client.get("/api/groups/group-1/balances").json()["balances"]
+    assert next(item for item in balances if item["user_id"] == "user-1")["user_name"] == "Александр"
 
 
 def test_notifications_and_messages_are_not_in_api():

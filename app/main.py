@@ -207,16 +207,21 @@ def ask_assistant(group_id: str, data: AssistantRequest):
 
 @app.get("/api/users/{user_id}/settings", tags=["settings"])
 def get_settings(user_id: str):
-    if not storage.get_user(user_id):
+    user = storage.get_user(user_id)
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return storage.settings.get(user_id, {"currency": "RUB"})
+    preferences = storage.settings.get(user_id, {"currency": "RUB"})
+    return {"name": user.name, **preferences}
 
 
 @app.patch("/api/users/{user_id}/settings", tags=["settings"])
 def update_settings(user_id: str, data: SettingsUpdate):
-    if not storage.get_user(user_id):
+    user = storage.get_user(user_id)
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if data.name is not None:
+        user = storage.update_user_name(user_id, data.name)
     current = storage.settings.get(user_id, {"currency": "RUB"})
-    current.update(data.model_dump(exclude_none=True))
+    current.update(data.model_dump(exclude={"name"}, exclude_none=True))
     storage.settings[user_id] = current
-    return current
+    return {"name": user.name, **current}

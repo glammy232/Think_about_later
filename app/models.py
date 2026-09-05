@@ -191,4 +191,5 @@ class AssistantResponse(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
     currency: str | None = Field(default=None, max_length=3)
