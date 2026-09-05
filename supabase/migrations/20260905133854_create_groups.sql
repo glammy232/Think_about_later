@@ -1,0 +1,6 @@
+CREATE TABLE groups (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
