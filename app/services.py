@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from urllib.parse import parse_qs
 
 from app.models import (
@@ -39,15 +39,23 @@ def get_balance_items(storage: Storage, group_id: str) -> list[BalanceItem]:
     for user in storage.list_users(group_id):
         balance = balances[user.id]
         status = "is_owed" if balance > 0 else "owes" if balance < 0 else "settled"
-        result.append(BalanceItem(user_id=user.id, user_name=user.name, balance=balance, status=status))
+        result.append(
+            BalanceItem(
+                user_id=user.id, user_name=user.name, balance=balance, status=status
+            )
+        )
     return result
 
 
 def simplify_transfers(storage: Storage, group_id: str) -> list[Transfer]:
     balances = calculate_net_balances(storage, group_id)
     names = {user.id: user.name for user in storage.list_users(group_id)}
-    debtors = [[user_id, -amount] for user_id, amount in balances.items() if amount < -0.009]
-    creditors = [[user_id, amount] for user_id, amount in balances.items() if amount > 0.009]
+    debtors = [
+        [user_id, -amount] for user_id, amount in balances.items() if amount < -0.009
+    ]
+    creditors = [
+        [user_id, amount] for user_id, amount in balances.items() if amount > 0.009
+    ]
     debtors.sort(key=lambda item: item[1], reverse=True)
     creditors.sort(key=lambda item: item[1], reverse=True)
     result: list[Transfer] = []
@@ -74,11 +82,17 @@ def simplify_transfers(storage: Storage, group_id: str) -> list[Transfer]:
     return result
 
 
-def dashboard_summary(storage: Storage, group_id: str, user_id: str) -> DashboardSummary:
+def dashboard_summary(
+    storage: Storage, group_id: str, user_id: str
+) -> DashboardSummary:
     operations = storage.list_operations(group_id)
-    total_expenses = sum(o.amount for o in operations if o.type == OperationType.expense)
+    total_expenses = sum(
+        o.amount for o in operations if o.type == OperationType.expense
+    )
     user_expenses = sum(
-        o.amount for o in operations if o.type == OperationType.expense and o.payer_id == user_id
+        o.amount
+        for o in operations
+        if o.type == OperationType.expense and o.payer_id == user_id
     )
     transfers = simplify_transfers(storage, group_id)
     return DashboardSummary(
@@ -86,13 +100,19 @@ def dashboard_summary(storage: Storage, group_id: str, user_id: str) -> Dashboar
         current_user_id=user_id,
         total_expenses=round(total_expenses, 2),
         user_expenses=round(user_expenses, 2),
-        owed_to_user=round(sum(t.amount for t in transfers if t.to_user_id == user_id), 2),
-        user_owes=round(sum(t.amount for t in transfers if t.from_user_id == user_id), 2),
+        owed_to_user=round(
+            sum(t.amount for t in transfers if t.to_user_id == user_id), 2
+        ),
+        user_owes=round(
+            sum(t.amount for t in transfers if t.from_user_id == user_id), 2
+        ),
     )
 
 
 def analytics(storage: Storage, group_id: str) -> dict:
-    operations = [o for o in storage.list_operations(group_id) if o.type == OperationType.expense]
+    operations = [
+        o for o in storage.list_operations(group_id) if o.type == OperationType.expense
+    ]
     by_category: dict[str, float] = defaultdict(float)
     by_month: dict[str, float] = defaultdict(float)
     by_user: dict[str, float] = defaultdict(float)
@@ -102,9 +122,15 @@ def analytics(storage: Storage, group_id: str) -> dict:
         by_user[operation.payer_id] += operation.amount
     return {
         "total": round(sum(o.amount for o in operations), 2),
-        "by_category": [{"name": k, "amount": round(v, 2)} for k, v in sorted(by_category.items())],
-        "by_month": [{"month": k, "amount": round(v, 2)} for k, v in sorted(by_month.items())],
-        "by_user": [{"user_id": k, "amount": round(v, 2)} for k, v in sorted(by_user.items())],
+        "by_category": [
+            {"name": k, "amount": round(v, 2)} for k, v in sorted(by_category.items())
+        ],
+        "by_month": [
+            {"month": k, "amount": round(v, 2)} for k, v in sorted(by_month.items())
+        ],
+        "by_user": [
+            {"user_id": k, "amount": round(v, 2)} for k, v in sorted(by_user.items())
+        ],
     }
 
 
@@ -114,7 +140,9 @@ def parse_receipt_qr(qr_data: str) -> ReceiptDraft:
     raw_total = params.get("s", ["0"])[0]
     raw_time = params.get("t", [""])[0]
     try:
-        purchased_at = datetime.strptime(raw_time[:13], "%Y%m%dT%H%M").replace(tzinfo=timezone.utc)
+        purchased_at = datetime.strptime(raw_time[:13], "%Y%m%dT%H%M").replace(
+            tzinfo=timezone.utc
+        )
     except ValueError:
         purchased_at = datetime.now(timezone.utc)
     amount = float(raw_total) if raw_total.replace(".", "", 1).isdigit() else 0

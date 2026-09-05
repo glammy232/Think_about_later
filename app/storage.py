@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Protocol
 from uuid import uuid4
 
@@ -61,7 +61,13 @@ class InMemoryStorage:
             member_ids=list(self.users),
         )
         seed = [
-            ("Продукты в магазине", 1245, "Продукты", "user-1", date.today()),
+            (
+                "Продукты в магазине",
+                1245,
+                "Продукты",
+                "user-1",
+                datetime.now(timezone.utc).date(),
+            ),
             ("Коммунальные услуги", 3860, "Коммуналка", "user-2", date(2026, 5, 14)),
             ("Такси", 560, "Транспорт", "user-3", date(2026, 5, 13)),
             ("Кафе", 1320, "Кафе и рестораны", "user-4", date(2026, 5, 12)),
@@ -98,7 +104,11 @@ class InMemoryStorage:
 
     def list_users(self, group_id: str) -> list[User]:
         group = self.groups.get(group_id)
-        return [deepcopy(self.users[user_id]) for user_id in group.member_ids] if group else []
+        return (
+            [deepcopy(self.users[user_id]) for user_id in group.member_ids]
+            if group
+            else []
+        )
 
     def get_user(self, user_id: str) -> User | None:
         return deepcopy(self.users.get(user_id))
@@ -123,18 +133,26 @@ class InMemoryStorage:
         return deepcopy(group)
 
     def add_member(self, group_id: str, data: MemberCreate) -> User:
-        user = User(id=f"user-{uuid4().hex[:10]}", **data.model_dump())
+        user = User(id=f"user-{uuid4().hex[:10]}", **data.model_dump(mode="json"))
         self.users[user.id] = user
         self.groups[group_id].member_ids.append(user.id)
         return deepcopy(user)
 
     def list_operations(self, group_id: str) -> list[Operation]:
         result = [o for o in self.operations.values() if o.group_id == group_id]
-        return deepcopy(sorted(result, key=lambda item: (item.operation_date, item.created_at), reverse=True))
+        return deepcopy(
+            sorted(
+                result,
+                key=lambda item: (item.operation_date, item.created_at),
+                reverse=True,
+            )
+        )
 
     def create_operation(self, group_id: str, data: OperationCreate) -> Operation:
         if data.type == OperationType.expense:
-            shares = data.shares or self._equal_shares(data.amount, data.participant_ids)
+            shares = data.shares or self._equal_shares(
+                data.amount, data.participant_ids
+            )
         else:
             shares = []
         operation = Operation(
@@ -151,7 +169,9 @@ class InMemoryStorage:
         cents = round(amount * 100)
         base, remainder = divmod(cents, len(participant_ids))
         return [
-            ShareInput(user_id=user_id, amount=(base + (1 if index < remainder else 0)) / 100)
+            ShareInput(
+                user_id=user_id, amount=(base + (1 if index < remainder else 0)) / 100
+            )
             for index, user_id in enumerate(participant_ids)
         ]
 
@@ -162,7 +182,9 @@ class InMemoryStorage:
         return deepcopy([d for d in self.debts.values() if d.group_id == group_id])
 
     def create_direct_debt(self, group_id: str, data: DirectDebtCreate) -> Debt:
-        debt = Debt(id=f"debt-{uuid4().hex[:10]}", group_id=group_id, **data.model_dump())
+        debt = Debt(
+            id=f"debt-{uuid4().hex[:10]}", group_id=group_id, **data.model_dump()
+        )
         self.debts[debt.id] = debt
         return deepcopy(debt)
 
@@ -180,7 +202,9 @@ class InMemoryStorage:
         return deepcopy([p for p in self.payments.values() if p.group_id == group_id])
 
     def create_payment(self, group_id: str, data: PaymentCreate) -> Payment:
-        payment = Payment(id=f"payment-{uuid4().hex[:10]}", group_id=group_id, **data.model_dump())
+        payment = Payment(
+            id=f"payment-{uuid4().hex[:10]}", group_id=group_id, **data.model_dump()
+        )
         self.payments[payment.id] = payment
         return deepcopy(payment)
 

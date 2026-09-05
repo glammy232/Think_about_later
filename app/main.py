@@ -21,9 +21,14 @@ from app.models import (
     ReceiptParseRequest,
     SettingsUpdate,
 )
-from app.services import analytics, dashboard_summary, get_balance_items, parse_receipt_qr, simplify_transfers
+from app.services import (
+    analytics,
+    dashboard_summary,
+    get_balance_items,
+    parse_receipt_qr,
+    simplify_transfers,
+)
 from app.storage import storage
-
 
 app = FastAPI(
     title=settings.app_name,
@@ -50,7 +55,9 @@ def validate_group_users(group_id: str, user_ids: list[str]):
     member_ids = {user.id for user in storage.list_users(group_id)}
     invalid = set(user_ids) - member_ids
     if invalid:
-        raise HTTPException(status_code=422, detail=f"Users are not group members: {sorted(invalid)}")
+        raise HTTPException(
+            status_code=422, detail=f"Users are not group members: {sorted(invalid)}"
+        )
 
 
 @app.get("/", tags=["system"])
@@ -80,7 +87,11 @@ def update_group_settings(group_id: str, data: GroupSettingsUpdate):
     return storage.update_group_name(group_id, data.name)
 
 
-@app.post("/api/groups/{group_id}/members", status_code=status.HTTP_201_CREATED, tags=["groups"])
+@app.post(
+    "/api/groups/{group_id}/members",
+    status_code=status.HTTP_201_CREATED,
+    tags=["groups"],
+)
 def add_member(group_id: str, data: MemberCreate):
     require_group(group_id)
     return storage.add_member(group_id, data)
@@ -102,10 +113,14 @@ def get_dashboard(
     }
 
 
-@app.get("/api/groups/{group_id}/operations", response_model=list[Operation], tags=["operations"])
+@app.get(
+    "/api/groups/{group_id}/operations",
+    response_model=list[Operation],
+    tags=["operations"],
+)
 def get_operations(
     group_id: str,
-    operation_type: OperationType | None = Query(default=None, alias="type"),
+    operation_type: Annotated[OperationType | None, Query(alias="type")] = None,
     category: str | None = None,
 ):
     require_group(group_id)
@@ -113,7 +128,9 @@ def get_operations(
     if operation_type:
         result = [item for item in result if item.type == operation_type]
     if category:
-        result = [item for item in result if item.category.casefold() == category.casefold()]
+        result = [
+            item for item in result if item.category.casefold() == category.casefold()
+        ]
     return result
 
 
@@ -129,7 +146,11 @@ def create_operation(group_id: str, data: OperationCreate):
     return storage.create_operation(group_id, data)
 
 
-@app.delete("/api/operations/{operation_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["operations"])
+@app.delete(
+    "/api/operations/{operation_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["operations"],
+)
 def delete_operation(operation_id: str):
     if not storage.delete_operation(operation_id):
         raise HTTPException(status_code=404, detail="Operation not found")
@@ -139,7 +160,10 @@ def delete_operation(operation_id: str):
 @app.get("/api/groups/{group_id}/balances", tags=["balances"])
 def get_balances(group_id: str):
     require_group(group_id)
-    return {"balances": get_balance_items(storage, group_id), "recommended_transfers": simplify_transfers(storage, group_id)}
+    return {
+        "balances": get_balance_items(storage, group_id),
+        "recommended_transfers": simplify_transfers(storage, group_id),
+    }
 
 
 @app.get("/api/groups/{group_id}/debts", tags=["debts"])
@@ -171,7 +195,9 @@ def settle_debt(debt_id: str):
     return debt
 
 
-@app.get("/api/groups/{group_id}/payments", response_model=list[Payment], tags=["debts"])
+@app.get(
+    "/api/groups/{group_id}/payments", response_model=list[Payment], tags=["debts"]
+)
 def get_payments(group_id: str):
     require_group(group_id)
     return storage.list_payments(group_id)
@@ -186,6 +212,24 @@ def get_payments(group_id: str):
 def create_payment(group_id: str, data: PaymentCreate):
     require_group(group_id)
     validate_group_users(group_id, [data.from_user_id, data.to_user_id])
+    matching_transfer = next(
+        (
+            transfer
+            for transfer in simplify_transfers(storage, group_id)
+            if transfer.from_user_id == data.from_user_id
+            and transfer.to_user_id == data.to_user_id
+        ),
+        None,
+    )
+    if not matching_transfer:
+        raise HTTPException(
+            status_code=422, detail="No active calculated debt between these users"
+        )
+    if data.amount - matching_transfer.amount > 0.009:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Payment exceeds active debt of {matching_transfer.amount:.2f}",
+        )
     return storage.create_payment(group_id, data)
 
 
@@ -200,7 +244,11 @@ def parse_receipt(data: ReceiptParseRequest):
     return parse_receipt_qr(data.qr_data)
 
 
-@app.post("/api/groups/{group_id}/assistant", response_model=AssistantResponse, tags=["assistant"])
+@app.post(
+    "/api/groups/{group_id}/assistant",
+    response_model=AssistantResponse,
+    tags=["assistant"],
+)
 def ask_assistant(group_id: str, data: AssistantRequest):
     require_group(group_id)
     report = analytics(storage, group_id)

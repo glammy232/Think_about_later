@@ -1,9 +1,17 @@
+import pytest
 from fastapi.testclient import TestClient
 
+import app.main as main_module
 from app.main import app
-
+from app.storage import InMemoryStorage
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def fresh_storage(monkeypatch):
+    """Every test starts with the same clean demo state."""
+    monkeypatch.setattr(main_module, "storage", InMemoryStorage())
 
 
 def test_health_and_docs_contract():
@@ -13,10 +21,18 @@ def test_health_and_docs_contract():
 
 
 def test_dashboard_contains_frontend_blocks():
-    response = client.get("/api/groups/group-1/dashboard", headers={"X-User-Id": "user-1"})
+    response = client.get(
+        "/api/groups/group-1/dashboard", headers={"X-User-Id": "user-1"}
+    )
     assert response.status_code == 200
     data = response.json()
-    assert set(data) == {"group", "summary", "recent_operations", "balances", "analytics"}
+    assert set(data) == {
+        "group",
+        "summary",
+        "recent_operations",
+        "balances",
+        "analytics",
+    }
     assert data["group"]["name"] == "Квартира на Ленина"
     assert len(data["group"]["member_ids"]) == 5
 
@@ -51,8 +67,12 @@ def test_create_equal_expense_and_recalculate_balances():
     assert sum(item["amount"] for item in operation["shares"]) == 1000
     assert all(item["amount"] == 250 for item in operation["shares"])
     after = client.get("/api/groups/group-1/balances").json()["balances"]
-    before_alexey = next(item["balance"] for item in before if item["user_id"] == "user-1")
-    after_alexey = next(item["balance"] for item in after if item["user_id"] == "user-1")
+    before_alexey = next(
+        item["balance"] for item in before if item["user_id"] == "user-1"
+    )
+    after_alexey = next(
+        item["balance"] for item in after if item["user_id"] == "user-1"
+    )
     assert after_alexey - before_alexey == 750
 
 
@@ -117,6 +137,37 @@ def test_custom_split_creates_exact_debts_for_each_participant():
     ]
 
 
+@pytest.mark.parametrize(
+    "participant_ids,shares",
+    [
+        (["user-1", "user-2", "user-2"], None),
+        (
+            ["user-1", "user-2"],
+            [
+                {"user_id": "user-1", "amount": 250},
+                {"user_id": "user-1", "amount": 250},
+                {"user_id": "user-2", "amount": 500},
+            ],
+        ),
+    ],
+)
+def test_duplicate_participants_are_rejected(participant_ids, shares):
+    response = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            "type": "expense",
+            "title": "Дубли участников",
+            "amount": 1000,
+            "category": "Другое",
+            "payer_id": "user-1",
+            "participant_ids": participant_ids,
+            "split_type": "custom" if shares else "equal",
+            "shares": shares,
+        },
+    )
+    assert response.status_code == 422
+
+
 def test_receipt_qr_draft():
     response = client.post(
         "/api/receipts/parse",
@@ -128,7 +179,9 @@ def test_receipt_qr_draft():
 
 
 def test_payment_reduces_calculated_debt():
-    transfers = client.get("/api/groups/group-1/balances").json()["recommended_transfers"]
+    transfers = client.get("/api/groups/group-1/balances").json()[
+        "recommended_transfers"
+    ]
     assert transfers
     transfer = transfers[0]
     before = transfer["amount"]
@@ -143,6 +196,26 @@ def test_payment_reduces_calculated_debt():
     )
     assert response.status_code == 201
     assert response.json()["amount"] == min(100, before)
+
+
+def test_payment_cannot_exceed_or_ignore_calculated_debt():
+    transfer = client.get("/api/groups/group-1/balances").json()[
+        "recommended_transfers"
+    ][0]
+    overpayment = client.post(
+        "/api/groups/group-1/payments",
+        json={
+            "from_user_id": transfer["from_user_id"],
+            "to_user_id": transfer["to_user_id"],
+            "amount": transfer["amount"] + 0.01,
+        },
+    )
+    assert overpayment.status_code == 422
+    unrelated = client.post(
+        "/api/groups/group-1/payments",
+        json={"from_user_id": "user-1", "to_user_id": "user-5", "amount": 1},
+    )
+    assert unrelated.status_code == 422
 
 
 def test_settings_change_name_and_currency_everywhere():
@@ -161,9 +234,14 @@ def test_settings_change_name_and_currency_everywhere():
         "currency": "USD",
     }
     members = client.get("/api/groups/group-1/members").json()
-    assert next(item for item in members if item["id"] == "user-1")["name"] == "Александр"
+    assert (
+        next(item for item in members if item["id"] == "user-1")["name"] == "Александр"
+    )
     balances = client.get("/api/groups/group-1/balances").json()["balances"]
-    assert next(item for item in balances if item["user_id"] == "user-1")["user_name"] == "Александр"
+    assert (
+        next(item for item in balances if item["user_id"] == "user-1")["user_name"]
+        == "Александр"
+    )
 
 
 def test_change_group_name():
@@ -175,6 +253,26 @@ def test_change_group_name():
     assert response.json()["name"] == "Дом на Ленина"
     dashboard = client.get("/api/groups/group-1/dashboard").json()
     assert dashboard["group"]["name"] == "Дом на Ленина"
+
+
+@pytest.mark.parametrize(
+    "url,payload",
+    [
+        ("/api/users/user-1/settings", {"currency": "ZZZ"}),
+        ("/api/users/user-1/settings", {"avatar_url": "не ссылка"}),
+        ("/api/users/user-1/settings", {"name": "   "}),
+        ("/api/groups/group-1/settings", {"name": "   "}),
+    ],
+)
+def test_invalid_settings_are_rejected(url, payload):
+    assert client.patch(url, json=payload).status_code == 422
+
+
+def test_names_are_trimmed():
+    group = client.patch("/api/groups/group-1/settings", json={"name": "  Наш дом  "})
+    profile = client.patch("/api/users/user-1/settings", json={"name": "  Алексей  "})
+    assert group.json()["name"] == "Наш дом"
+    assert profile.json()["name"] == "Алексей"
 
 
 def test_notifications_and_messages_are_not_in_api():

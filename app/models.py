@@ -2,10 +2,25 @@ from datetime import date, datetime, timezone
 from enum import StrEnum
 from typing import Annotated
 
-from pydantic import BaseModel, Field, model_validator
-
+from pydantic import (
+    BaseModel,
+    Field,
+    HttpUrl,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 Money = Annotated[float, Field(ge=0)]
+Name80 = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)
+]
+Name120 = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)
+]
+Text200 = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
+]
 
 
 def utc_now() -> datetime:
@@ -27,15 +42,21 @@ class DebtStatus(StrEnum):
     settled = "settled"
 
 
+class Currency(StrEnum):
+    RUB = "RUB"
+    USD = "USD"
+    EUR = "EUR"
+
+
 class User(BaseModel):
     id: str
-    name: str
-    avatar_url: str | None = None
+    name: Name80
+    avatar_url: HttpUrl | None = None
 
 
 class MemberCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
-    avatar_url: str | None = Field(default=None, max_length=500)
+    name: Name80
+    avatar_url: HttpUrl | None = None
 
 
 class Group(BaseModel):
@@ -51,9 +72,11 @@ class ShareInput(BaseModel):
 
 class OperationCreate(BaseModel):
     type: OperationType
-    title: str = Field(min_length=1, max_length=120)
+    title: Name120
     amount: Annotated[float, Field(gt=0)]
-    category: str = Field(min_length=1, max_length=60)
+    category: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)
+    ]
     payer_id: str
     participant_ids: list[str] = Field(min_length=1)
     split_type: SplitType = SplitType.equal
@@ -62,6 +85,13 @@ class OperationCreate(BaseModel):
     comment: str | None = Field(default=None, max_length=500)
     source: str = "manual"
 
+    @field_validator("participant_ids")
+    @classmethod
+    def participants_must_be_unique(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("participant_ids must not contain duplicates")
+        return value
+
     @model_validator(mode="after")
     def validate_custom_shares(self):
         if self.type == OperationType.income:
@@ -69,6 +99,9 @@ class OperationCreate(BaseModel):
         if self.split_type == SplitType.custom:
             if not self.shares:
                 raise ValueError("shares are required for custom split")
+            share_user_ids = [share.user_id for share in self.shares]
+            if len(share_user_ids) != len(set(share_user_ids)):
+                raise ValueError("shares must not contain duplicate users")
             if {s.user_id for s in self.shares} != set(self.participant_ids):
                 raise ValueError("shares must match participant_ids")
             if abs(sum(s.amount for s in self.shares) - self.amount) > 0.01:
@@ -97,7 +130,7 @@ class DirectDebtCreate(BaseModel):
     debtor_id: str
     creditor_id: str
     amount: Annotated[float, Field(gt=0)]
-    description: str = Field(min_length=1, max_length=200)
+    description: Text200
     due_date: date | None = None
 
     @model_validator(mode="after")
@@ -191,10 +224,10 @@ class AssistantResponse(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=80)
-    avatar_url: str | None = Field(default=None, max_length=500)
-    currency: str | None = Field(default=None, max_length=3)
+    name: Name80 | None = None
+    avatar_url: HttpUrl | None = None
+    currency: Currency | None = None
 
 
 class GroupSettingsUpdate(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
+    name: Name120
