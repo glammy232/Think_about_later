@@ -34,6 +34,7 @@ docker compose up --build
 
 - главная сводка — `GET /api/groups/{group_id}/dashboard`;
 - участники группы;
+- добавление новых участников в группу;
 - расходы и доходы, равное и ручное деление;
 - автоматический расчет балансов и минимальных переводов;
 - прямые долги и их погашение;
@@ -91,6 +92,7 @@ await fetch('http://localhost:8000/api/groups/group-1/operations', {
 | Аналитика | `GET /groups/{id}/analytics` |
 | Задолженности | `GET /groups/{id}/debts` |
 | Участники | `GET /groups/{id}/members` |
+| Добавить участника | `POST /groups/{id}/members` |
 | Расход | `POST /groups/{id}/operations`, `type=expense` |
 | Доход | `POST /groups/{id}/operations`, `type=income` |
 | Долг | `POST /groups/{id}/debts` |
@@ -100,6 +102,28 @@ await fetch('http://localhost:8000/api/groups/group-1/operations', {
 | Настройки | `GET/PATCH /users/{id}/settings` |
 
 Во frontend к указанным путям нужно добавлять префикс `/api`.
+
+### Неравное распределение расхода
+
+Если первый пользователь заплатил 5 000 ₽, а второй должен 3 000 ₽ и третий 2 000 ₽, frontend отправляет:
+
+```json
+{
+  "type": "expense",
+  "title": "Продукты на троих",
+  "amount": 5000,
+  "category": "Продукты",
+  "payer_id": "user-1",
+  "participant_ids": ["user-2", "user-3"],
+  "split_type": "custom",
+  "shares": [
+    { "user_id": "user-2", "amount": 3000 },
+    { "user_id": "user-3", "amount": 2000 }
+  ]
+}
+```
+
+Сумма всех `shares` обязана совпадать с `amount`. После создания операции главная сводка, список операций, балансы, задолженности и аналитика пересчитываются автоматически.
 
 ## Будущая интеграция базы данных
 

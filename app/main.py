@@ -10,6 +10,7 @@ from app.models import (
     AssistantResponse,
     Debt,
     DirectDebtCreate,
+    MemberCreate,
     Operation,
     OperationCreate,
     OperationType,
@@ -70,6 +71,12 @@ def get_group(group_id: str):
 def get_members(group_id: str):
     require_group(group_id)
     return storage.list_users(group_id)
+
+
+@app.post("/api/groups/{group_id}/members", status_code=status.HTTP_201_CREATED, tags=["groups"])
+def add_member(group_id: str, data: MemberCreate):
+    require_group(group_id)
+    return storage.add_member(group_id, data)
 
 
 @app.get("/api/groups/{group_id}/dashboard", tags=["dashboard"])

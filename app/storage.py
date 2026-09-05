@@ -7,6 +7,7 @@ from app.models import (
     Debt,
     DirectDebtCreate,
     Group,
+    MemberCreate,
     Operation,
     OperationCreate,
     OperationType,
@@ -21,6 +22,7 @@ from app.models import (
 class Storage(Protocol):
     def get_group(self, group_id: str) -> Group | None: ...
     def list_users(self, group_id: str) -> list[User]: ...
+    def add_member(self, group_id: str, data: MemberCreate) -> User: ...
     def get_user(self, user_id: str) -> User | None: ...
     def list_operations(self, group_id: str) -> list[Operation]: ...
     def create_operation(self, group_id: str, data: OperationCreate) -> Operation: ...
@@ -96,6 +98,12 @@ class InMemoryStorage:
 
     def get_user(self, user_id: str) -> User | None:
         return deepcopy(self.users.get(user_id))
+
+    def add_member(self, group_id: str, data: MemberCreate) -> User:
+        user = User(id=f"user-{uuid4().hex[:10]}", **data.model_dump())
+        self.users[user.id] = user
+        self.groups[group_id].member_ids.append(user.id)
+        return deepcopy(user)
 
     def list_operations(self, group_id: str) -> list[Operation]:
         result = [o for o in self.operations.values() if o.group_id == group_id]

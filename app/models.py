@@ -33,6 +33,11 @@ class User(BaseModel):
     avatar_url: str | None = None
 
 
+class MemberCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    avatar_url: str | None = Field(default=None, max_length=500)
+
+
 class Group(BaseModel):
     id: str
     name: str

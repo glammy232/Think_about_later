@@ -21,6 +21,19 @@ def test_dashboard_contains_frontend_blocks():
     assert len(data["group"]["member_ids"]) == 5
 
 
+def test_add_member_appears_in_group_and_balances():
+    response = client.post(
+        "/api/groups/group-1/members",
+        json={"name": "Ольга", "avatar_url": "https://example.com/olga.png"},
+    )
+    assert response.status_code == 201
+    user_id = response.json()["id"]
+    members = client.get("/api/groups/group-1/members").json()
+    assert any(item["id"] == user_id and item["name"] == "Ольга" for item in members)
+    balances = client.get("/api/groups/group-1/balances").json()["balances"]
+    assert any(item["user_id"] == user_id and item["balance"] == 0 for item in balances)
+
+
 def test_create_equal_expense_and_recalculate_balances():
     before = client.get("/api/groups/group-1/balances").json()["balances"]
     payload = {
@@ -78,6 +91,30 @@ def test_custom_split_validation():
         },
     )
     assert response.status_code == 422
+
+
+def test_custom_split_creates_exact_debts_for_each_participant():
+    response = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            "type": "expense",
+            "title": "Продукты на троих",
+            "amount": 5000,
+            "category": "Продукты",
+            "payer_id": "user-1",
+            "participant_ids": ["user-2", "user-3"],
+            "split_type": "custom",
+            "shares": [
+                {"user_id": "user-2", "amount": 3000},
+                {"user_id": "user-3", "amount": 2000},
+            ],
+        },
+    )
+    assert response.status_code == 201
+    assert response.json()["shares"] == [
+        {"user_id": "user-2", "amount": 3000.0},
+        {"user_id": "user-3", "amount": 2000.0},
+    ]
 
 
 def test_receipt_qr_draft():
