@@ -148,14 +148,33 @@ def test_payment_reduces_calculated_debt():
 def test_settings_change_name_and_currency_everywhere():
     response = client.patch(
         "/api/users/user-1/settings",
-        json={"name": "Александр", "currency": "USD"},
+        json={
+            "name": "Александр",
+            "avatar_url": "https://example.com/alexander.png",
+            "currency": "USD",
+        },
     )
     assert response.status_code == 200
-    assert response.json() == {"name": "Александр", "currency": "USD"}
+    assert response.json() == {
+        "name": "Александр",
+        "avatar_url": "https://example.com/alexander.png",
+        "currency": "USD",
+    }
     members = client.get("/api/groups/group-1/members").json()
     assert next(item for item in members if item["id"] == "user-1")["name"] == "Александр"
     balances = client.get("/api/groups/group-1/balances").json()["balances"]
     assert next(item for item in balances if item["user_id"] == "user-1")["user_name"] == "Александр"
+
+
+def test_change_group_name():
+    response = client.patch(
+        "/api/groups/group-1/settings",
+        json={"name": "Дом на Ленина"},
+    )
+    assert response.status_code == 200
+    assert response.json()["name"] == "Дом на Ленина"
+    dashboard = client.get("/api/groups/group-1/dashboard").json()
+    assert dashboard["group"]["name"] == "Дом на Ленина"
 
 
 def test_notifications_and_messages_are_not_in_api():

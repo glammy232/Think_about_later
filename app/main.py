@@ -10,6 +10,7 @@ from app.models import (
     AssistantResponse,
     Debt,
     DirectDebtCreate,
+    GroupSettingsUpdate,
     MemberCreate,
     Operation,
     OperationCreate,
@@ -71,6 +72,12 @@ def get_group(group_id: str):
 def get_members(group_id: str):
     require_group(group_id)
     return storage.list_users(group_id)
+
+
+@app.patch("/api/groups/{group_id}/settings", tags=["settings"])
+def update_group_settings(group_id: str, data: GroupSettingsUpdate):
+    require_group(group_id)
+    return storage.update_group_name(group_id, data.name)
 
 
 @app.post("/api/groups/{group_id}/members", status_code=status.HTTP_201_CREATED, tags=["groups"])
@@ -211,7 +218,7 @@ def get_settings(user_id: str):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     preferences = storage.settings.get(user_id, {"currency": "RUB"})
-    return {"name": user.name, **preferences}
+    return {"name": user.name, "avatar_url": user.avatar_url, **preferences}
 
 
 @app.patch("/api/users/{user_id}/settings", tags=["settings"])
@@ -219,9 +226,9 @@ def update_settings(user_id: str, data: SettingsUpdate):
     user = storage.get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if data.name is not None:
-        user = storage.update_user_name(user_id, data.name)
+    if data.name is not None or data.avatar_url is not None:
+        user = storage.update_user_profile(user_id, data.name, data.avatar_url)
     current = storage.settings.get(user_id, {"currency": "RUB"})
-    current.update(data.model_dump(exclude={"name"}, exclude_none=True))
+    current.update(data.model_dump(exclude={"name", "avatar_url"}, exclude_none=True))
     storage.settings[user_id] = current
-    return {"name": user.name, **current}
+    return {"name": user.name, "avatar_url": user.avatar_url, **current}

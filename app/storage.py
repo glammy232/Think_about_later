@@ -24,7 +24,10 @@ class Storage(Protocol):
     def list_users(self, group_id: str) -> list[User]: ...
     def add_member(self, group_id: str, data: MemberCreate) -> User: ...
     def get_user(self, user_id: str) -> User | None: ...
-    def update_user_name(self, user_id: str, name: str) -> User | None: ...
+    def update_user_profile(
+        self, user_id: str, name: str | None = None, avatar_url: str | None = None
+    ) -> User | None: ...
+    def update_group_name(self, group_id: str, name: str) -> Group | None: ...
     def list_operations(self, group_id: str) -> list[Operation]: ...
     def create_operation(self, group_id: str, data: OperationCreate) -> Operation: ...
     def delete_operation(self, operation_id: str) -> bool: ...
@@ -100,12 +103,24 @@ class InMemoryStorage:
     def get_user(self, user_id: str) -> User | None:
         return deepcopy(self.users.get(user_id))
 
-    def update_user_name(self, user_id: str, name: str) -> User | None:
+    def update_user_profile(
+        self, user_id: str, name: str | None = None, avatar_url: str | None = None
+    ) -> User | None:
         user = self.users.get(user_id)
         if not user:
             return None
-        user.name = name
+        if name is not None:
+            user.name = name
+        if avatar_url is not None:
+            user.avatar_url = avatar_url
         return deepcopy(user)
+
+    def update_group_name(self, group_id: str, name: str) -> Group | None:
+        group = self.groups.get(group_id)
+        if not group:
+            return None
+        group.name = name
+        return deepcopy(group)
 
     def add_member(self, group_id: str, data: MemberCreate) -> User:
         user = User(id=f"user-{uuid4().hex[:10]}", **data.model_dump())
