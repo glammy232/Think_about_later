@@ -184,8 +184,12 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 /* layout helpers */
 .grid-2{display:grid; grid-template-columns: 1.4fr 1fr; gap:16px;}
 .grid-3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; align-items:stretch;}
-.grid-3{align-items:start;}
+.grid-3{align-items:stretch;}
 .grid-3 .panel{height:auto;min-height:0!important;box-sizing:border-box;}
+.grid-3 .ai-chat{display:flex;flex-direction:column;}
+.grid-3 .ai-chat .ai-suggest{display:none;}
+.grid-3 .ai-chat .api-ai-messages{order:1;min-height:130px;max-height:220px;flex:1;}
+.grid-3 .ai-chat>div:last-child{order:2;margin-top:auto;}
 .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
 .panel{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px;}
 .panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
