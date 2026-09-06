@@ -658,6 +658,9 @@
     const input = panel?.querySelector('.ai-input input');
     const send = panel?.querySelector('.ai-input .send');
     if (!messages || !input || !send) return;
+    // Жёстко фиксируем порядок: история чата выше блока ввода.
+    const controls = [...panel.children].find((child) => child.querySelector('.ai-input'));
+    if (controls && messages !== controls) panel.insertBefore(messages, controls);
     messages.innerHTML = '<div class="ai-msg">Привет! Я финансовый помощник. Спросите меня о расходах, долгах или попросите добавить операцию.</div>';
     let conversationId = sessionStorage.getItem('krug_conversation_id');
     const draftCard = (action) => {
