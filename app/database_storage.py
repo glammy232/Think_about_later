@@ -25,7 +25,7 @@ def _numeric_id(value: str) -> int:
     """Accept both database IDs ("12") and API-prefixed IDs ("user-12")."""
     try:
         return int(value.rsplit("-", 1)[-1])
-    except (TypeError, ValueError) as exc:
+    except (TypeError, ValueError):
         # Old browser sessions can contain in-memory IDs such as group-ab12cd.
         # Treat them as a missing row so the API returns its normal 404 response.
         return -1
