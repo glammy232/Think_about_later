@@ -316,6 +316,8 @@
   async function hydrateDashboard() {
     if (!location.pathname.endsWith('/index.html') && !location.pathname.endsWith('/app/')) return;
     const dashboard = await request(`/groups/${GROUP_ID}/dashboard`);
+    const txList = document.getElementById('tx-list');
+    if (txList) txList.innerHTML = (dashboard.recent_operations || []).map(operationRow).join('') || 'Нет операций';
     const cards = document.querySelectorAll('.stats .stat-value');
     if (cards[0]) cards[0].textContent = money(dashboard.summary.total_expenses);
     if (cards[1]) cards[1].textContent = money(dashboard.summary.user_expenses);
