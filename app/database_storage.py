@@ -115,7 +115,14 @@ class PostgresStorage:
 
     def delete_group(self, group_id: str) -> bool:
         with self._connection() as connection:
-            result = connection.execute("DELETE FROM groups WHERE id = %s", (_numeric_id(group_id),))
+            gid = _numeric_id(group_id)
+            connection.execute("DELETE FROM expense_participants WHERE expense_id IN (SELECT id FROM expenses WHERE group_id = %s)", (gid,))
+            connection.execute("DELETE FROM expenses WHERE group_id = %s", (gid,))
+            connection.execute("DELETE FROM incomes WHERE group_id = %s", (gid,))
+            connection.execute("DELETE FROM direct_debts WHERE group_id = %s", (gid,))
+            connection.execute("DELETE FROM settlements WHERE group_id = %s", (gid,))
+            connection.execute("DELETE FROM group_members WHERE group_id = %s", (gid,))
+            result = connection.execute("DELETE FROM groups WHERE id = %s", (gid,))
             return result.rowcount > 0
 
     def create_group(self, data: GroupCreate) -> tuple[Group, User]:
