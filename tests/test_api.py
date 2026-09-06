@@ -24,7 +24,7 @@ def test_frontend_is_served_with_backend_integration():
     response = client.get("/demo")
     assert response.status_code == 200
     assert 'id="create-group-form"' in response.text
-    assert "DeepSeek" in response.text
+    assert "Финансовый помощник" in response.text
     assert client.get("/app/api.js").status_code == 200
 
 

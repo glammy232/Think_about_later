@@ -88,6 +88,8 @@
     document.querySelectorAll('.household').forEach((household) => {
       if (household.dataset.membersBound) return;
       household.dataset.membersBound = '1';
+      household.removeAttribute('data-clickable');
+      household.style.overflow = 'visible';
       const menu = document.createElement('div');
       menu.className = 'api-members-menu';
       menu.innerHTML = `<b>${escapeHtml(state.group.name)}</b>` + state.members.map((member) =>
@@ -246,15 +248,47 @@
 
   async function hydrateAnalytics() {
     const data = await request(`/groups/${GROUP_ID}/analytics`);
+    const chartColors = ['#4ea3e8', '#3fbf8f', '#f2b84b', '#e05c5c', '#9a5fd1', '#67b86f'];
     const total = document.querySelector('.trend-total');
     if (total) total.firstChild.textContent = `${money(data.total)} `;
     const categoryPanel = [...document.querySelectorAll('.panel')]
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Расходы по категориям'));
     const legend = categoryPanel?.querySelector('.chart-wrap > div');
+    const categoryChart = categoryPanel?.querySelector('.chart-wrap svg');
+    if (categoryChart) {
+      if (!data.total) {
+        categoryChart.innerHTML = '<circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#dfe4e1" stroke-width="6"/>';
+      } else {
+        let offset = 0;
+        categoryChart.innerHTML = data.by_category.map((item, index) => {
+          const percent = item.amount / data.total * 100;
+          const circle = `<circle cx="21" cy="21" r="15.9" fill="transparent" stroke="${chartColors[index % chartColors.length]}" stroke-width="6" pathLength="100" stroke-dasharray="${percent} ${100 - percent}" stroke-dashoffset="-${offset}"/>`;
+          offset += percent;
+          return circle;
+        }).join('');
+        categoryChart.style.transform = 'rotate(-90deg)';
+      }
+    }
     if (legend) {
       legend.innerHTML = data.by_category.map((item, index) => `<div class="legend-row">
-        <span class="legend-left"><span class="legend-dot" style="background:${['#4ea3e8','#3fbf8f','#f2b84b','#e05c5c','#c9cfcb'][index % 5]}"></span>${escapeHtml(item.name)}</span>
-        <span class="legend-pct">${data.total ? Math.round(item.amount / data.total * 100) : 0}%</span><span class="legend-val">${money(item.amount)}</span></div>`).join('');
+        <span class="legend-left"><span class="legend-dot" style="background:${chartColors[index % chartColors.length]}"></span>${escapeHtml(item.name)}</span>
+        <span class="legend-pct">${Math.round(item.amount / data.total * 100)}%</span><span class="legend-val">${money(item.amount)}</span></div>`).join('')
+        || '<div class="api-empty-chart">Категории появятся после первого расхода</div>';
+    }
+    const trendPanel = [...document.querySelectorAll('.panel')]
+      .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Динамика расходов'));
+    const trendChart = trendPanel?.querySelector('svg');
+    if (trendChart) {
+      if (!data.by_month.length) {
+        trendChart.innerHTML = '<text x="130" y="58" text-anchor="middle" fill="#9aa39e" font-size="12">Пока нет расходов</text>';
+      } else {
+        const values = data.by_month.slice(-6);
+        const max = Math.max(...values.map((item) => item.amount), 1);
+        const step = values.length > 1 ? 240 / (values.length - 1) : 0;
+        const points = values.map((item, index) => `${10 + index * step},${95 - item.amount / max * 75}`).join(' ');
+        const last = points.split(' ').at(-1).split(',');
+        trendChart.innerHTML = `${values.length > 1 ? `<polyline fill="none" stroke="#1a7a4c" stroke-width="2.5" points="${points}"/>` : ''}<circle cx="${last[0]}" cy="${last[1]}" r="4" fill="#1a7a4c"/>`;
+      }
     }
     const userPanel = [...document.querySelectorAll('.panel')]
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Траты по участникам'));
@@ -394,8 +428,55 @@
     const input = panel?.querySelector('.ai-input input');
     const send = panel?.querySelector('.ai-input .send');
     if (!messages || !input || !send) return;
-    messages.innerHTML = '<div class="ai-msg">Привет! Я финансовый помощник DeepSeek. Спросите меня о расходах, долгах или попросите добавить операцию.</div>';
+    messages.innerHTML = '<div class="ai-msg">Привет! Я финансовый помощник. Спросите меня о расходах, долгах или попросите добавить операцию.</div>';
     let conversationId = sessionStorage.getItem('krug_conversation_id');
+    const draftCard = (action) => {
+      const typeNames = { expense: 'Расход', income: 'Доход', debt: 'Долг' };
+      const rows = action.type === 'debt'
+        ? [
+          ['Сумма', money(action.amount)],
+          ['Кто должен', memberName(action.debtor_id)],
+          ['Кому должен', memberName(action.creditor_id)],
+          ['Комментарий', action.description || 'Без комментария'],
+          ['Срок', action.due_date ? formatDate(action.due_date) : 'Не указан'],
+        ]
+        : [
+          ['Название', action.title || 'Без названия'],
+          ['Сумма', money(action.amount)],
+          ['Категория', action.category || 'Другое'],
+          [action.type === 'income' ? 'Получатель' : 'Кто оплатил', memberName(action.payer_id)],
+          ['Дата', action.operation_date ? formatDate(action.operation_date) : 'Сегодня'],
+        ];
+      const shares = action.shares?.length
+        ? action.shares.map((share) =>
+          `<li><span>${escapeHtml(memberName(share.user_id))}</span><b>${share.amount != null ? money(share.amount) : `${Number(share.percentage || 0).toLocaleString('ru-RU')}%`}</b></li>`).join('')
+        : action.type === 'expense' && action.participant_ids?.length
+          ? action.participant_ids.map((id) => `<li><span>${escapeHtml(memberName(id))}</span><b>${money(action.amount / action.participant_ids.length)}</b></li>`).join('')
+          : '';
+      return `<section class="api-ai-draft" data-action-id="${escapeHtml(action.action_id)}">
+        <div class="api-ai-draft-head"><span>Черновик</span><b>${typeNames[action.type] || 'Операция'}</b></div>
+        <div class="api-ai-draft-rows">${rows.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`).join('')}</div>
+        ${shares ? `<div class="api-ai-draft-split"><span>Распределение</span><ul>${shares}</ul></div>` : ''}
+        <p>Проверьте данные. Они сохранятся только после подтверждения.</p>
+        <div class="api-ai-draft-actions"><button type="button" class="ghost-btn api-ai-cancel">Отменить</button><button type="button" class="primary-btn api-ai-confirm">Подтвердить и сохранить</button></div>
+      </section>`;
+    };
+    const bindDraftActions = (card) => {
+      const actionId = card.dataset.actionId;
+      card.querySelector('.api-ai-confirm')?.addEventListener('click', async () => {
+        try {
+          await request(`/groups/${GROUP_ID}/assistant/actions/${actionId}/confirm`, { method: 'POST' });
+          card.innerHTML = '<div class="api-ai-draft-result success">✓ Операция сохранена</div>';
+          await Promise.all([hydrateOperations(), hydrateDashboard(), hydrateBalances(), hydrateAnalytics(), hydrateDebts()]);
+        } catch (error) { notify(error.message, true); }
+      });
+      card.querySelector('.api-ai-cancel')?.addEventListener('click', async () => {
+        try {
+          await request(`/groups/${GROUP_ID}/assistant/actions/${actionId}/cancel`, { method: 'POST' });
+          card.innerHTML = '<div class="api-ai-draft-result">Черновик отменён</div>';
+        } catch (error) { notify(error.message, true); }
+      });
+    };
     const sendMessage = async (text) => {
       if (!text.trim() || send.dataset.busy) return;
       messages.insertAdjacentHTML('beforeend', `<div class="ai-msg me">${escapeHtml(text)}</div>`);
@@ -405,8 +486,11 @@
         const response = await request(`/groups/${GROUP_ID}/assistant`, { method: 'POST', body: JSON.stringify({ message: text, conversation_id: conversationId }) });
         conversationId = response.conversation_id;
         sessionStorage.setItem('krug_conversation_id', conversationId);
-        waiting.textContent = response.answer;
-        if (response.pending_action) waiting.dataset.actionId = response.pending_action.action_id;
+        waiting.textContent = response.pending_action ? 'Проверьте подготовленный черновик:' : response.answer;
+        if (response.pending_action) {
+          waiting.insertAdjacentHTML('afterend', draftCard(response.pending_action));
+          bindDraftActions(waiting.nextElementSibling);
+        }
       } catch (error) { waiting.textContent = `Ошибка: ${error.message}`; }
       finally { delete send.dataset.busy; input.disabled = false; input.focus(); messages.scrollTop = messages.scrollHeight; }
     };
