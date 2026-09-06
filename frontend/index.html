@@ -183,7 +183,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 
 /* layout helpers */
 .grid-2{display:grid; grid-template-columns: 1.4fr 1fr; gap:16px;}
-.grid-3{display:grid; grid-template-columns: 1.3fr 1fr 1fr; gap:16px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; align-items:stretch;}
 .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
 .panel{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px;}
 .panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
