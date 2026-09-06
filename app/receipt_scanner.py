@@ -48,7 +48,18 @@ def parse_receipt_qr_image(content: bytes) -> ReceiptDraft:
         import cv2
         import numpy as np
         image = cv2.imdecode(np.frombuffer(content, dtype=np.uint8), cv2.IMREAD_COLOR)
-        value, _, _ = cv2.QRCodeDetector().detectAndDecode(image)
+        detector = cv2.QRCodeDetector()
+        value = ''
+        variants = [image, cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)]
+        for variant in variants:
+            for angle in (0, 90, 180, 270):
+                rotated = variant if angle == 0 else cv2.rotate(variant, {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180, 270: cv2.ROTATE_90_COUNTERCLOCKWISE}[angle])
+                for scale in (1, 1.5, 2):
+                    candidate = cv2.resize(rotated, None, fx=scale, fy=scale) if scale != 1 else rotated
+                    value, _, _ = detector.detectAndDecode(candidate)
+                    if value: break
+                if value: break
+            if value: break
     except Exception as exc:
         raise ValueError('Не удалось прочитать QR-код чека') from exc
     if not value:
