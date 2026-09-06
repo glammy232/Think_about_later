@@ -43,6 +43,7 @@
   };
   clearDemoContent();
   const state = { members: [], group: null, operations: [], analyticsMonths: 6 };
+  const apiCache = new Map();
   const monthGenitive = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
   const monthPrepositional = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
 
@@ -58,6 +59,8 @@
   const periodLabel = (months) => months === 12 ? 'за год' : months === 6 ? 'за 6 месяцев' : 'за 3 месяца';
 
   async function request(path, options = {}) {
+    const cacheKey = `${options.method || 'GET'}:${path}`;
+    if ((!options.method || options.method === 'GET') && apiCache.has(cacheKey)) return apiCache.get(cacheKey);
     const response = await fetch(`${API}${path}`, {
       ...options,
       headers: {
@@ -74,7 +77,10 @@
       } catch (_) { /* keep status */ }
       throw new Error(detail);
     }
-    return response.status === 204 ? null : response.json();
+    const result = response.status === 204 ? null : await response.json();
+    if (!options.method || options.method === 'GET') apiCache.set(cacheKey, result);
+    else apiCache.clear();
+    return result;
   }
 
   function notify(text, error = false) {
@@ -510,6 +516,15 @@
     return undefined;
   }
 
+  async function preloadAllData() {
+    await Promise.allSettled([
+      request(`/groups/${GROUP_ID}/dashboard`), request(`/groups/${GROUP_ID}/operations`),
+      request(`/groups/${GROUP_ID}/balances`), request(`/groups/${GROUP_ID}/debts`),
+      request(`/groups/${GROUP_ID}/analytics?months=6`), request(`/groups/${GROUP_ID}/analytics?months=3`),
+      request(`/groups/${GROUP_ID}/analytics?months=12`),
+    ]);
+  }
+
   function openInviteDialog() {
     document.getElementById('api-invite-modal')?.remove();
     const inviteUrl = `${location.origin}/app/onboarding.html?invite=${encodeURIComponent(GROUP_ID)}`;
@@ -772,6 +787,7 @@
       bindFinanceNavigation();
       updateCurrentDates();
       await loadContext();
+      await preloadAllData();
       enhanceOperationForm();
       bindAnalyticsPeriods();
       await hydrateCurrentPage();
