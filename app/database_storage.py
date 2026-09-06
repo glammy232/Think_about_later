@@ -1,8 +1,8 @@
 from datetime import datetime
 from uuid import uuid4
 
-from psycopg import connect
 from psycopg.rows import dict_row
+from psycopg_pool import ConnectionPool
 
 from app.models import (
     Debt,
@@ -38,11 +38,21 @@ class PostgresStorage:
 
     def __init__(self, database_url: str):
         self.database_url = database_url
+        self.pool = ConnectionPool(
+            conninfo=database_url,
+            min_size=1,
+            max_size=10,
+            open=True,
+            kwargs={"row_factory": dict_row, "prepare_threshold": None},
+        )
+        self.pool.wait(timeout=15)
         with self._connection() as connection:
             connection.execute("SELECT 1")
 
     def _connection(self):
-        return connect(self.database_url, row_factory=dict_row)
+        # Supabase transaction pooler reuses server connections between clients;
+        # named prepared statements can therefore collide across requests.
+        return self.pool.connection()
 
     @staticmethod
     def _shares(data: OperationCreate) -> list[ShareInput]:
@@ -176,16 +186,21 @@ class PostgresStorage:
         with self._connection() as connection:
             expenses = connection.execute(
                 """SELECT e.*, COALESCE(e.title, e.description, 'Расход') AS effective_title,
-                          c.name AS category FROM expenses e
+                          c.name AS category,
+                          COALESCE(
+                              json_agg(json_build_object('user_id', ep.user_id, 'share', ep.share)
+                                       ORDER BY ep.id) FILTER (WHERE ep.id IS NOT NULL),
+                              '[]'::json
+                          ) AS participant_shares
+                   FROM expenses e
                    JOIN categories c ON c.id = e.category_id
-                   WHERE e.group_id = %s ORDER BY e.expense_date DESC, e.created_at DESC""",
+                   LEFT JOIN expense_participants ep ON ep.expense_id = e.id
+                   WHERE e.group_id = %s
+                   GROUP BY e.id, c.name
+                   ORDER BY e.expense_date DESC, e.created_at DESC""",
                 (numeric_group_id,),
             ).fetchall()
             for row in expenses:
-                share_rows = connection.execute(
-                    "SELECT user_id, share FROM expense_participants WHERE expense_id = %s ORDER BY id",
-                    (row["id"],),
-                ).fetchall()
                 shares = [
                     ShareInput(
                         user_id=str(item["user_id"]),
@@ -194,7 +209,7 @@ class PostgresStorage:
                             float(item["share"]) / float(row["amount"]) * 100, 2
                         ),
                     )
-                    for item in share_rows
+                    for item in row["participant_shares"]
                 ]
                 result.append(
                     Operation(

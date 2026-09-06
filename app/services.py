@@ -5,38 +5,70 @@ from urllib.parse import parse_qs
 from app.models import (
     BalanceItem,
     DashboardSummary,
+    Debt,
     DebtStatus,
+    Operation,
     OperationType,
+    Payment,
     ReceiptDraft,
     Transfer,
+    User,
 )
 from app.storage import Storage
 
 
-def calculate_net_balances(storage: Storage, group_id: str) -> dict[str, float]:
-    users = storage.list_users(group_id)
+def calculate_net_balances(
+    storage: Storage,
+    group_id: str,
+    *,
+    users: list[User] | None = None,
+    operations: list[Operation] | None = None,
+    direct_debts: list[Debt] | None = None,
+    payments: list[Payment] | None = None,
+) -> dict[str, float]:
+    users = users if users is not None else storage.list_users(group_id)
     balances = {user.id: 0.0 for user in users}
-    for operation in storage.list_operations(group_id):
+    operations = (
+        operations if operations is not None else storage.list_operations(group_id)
+    )
+    for operation in operations:
         if operation.type != OperationType.expense:
             continue
         balances[operation.payer_id] += operation.amount
         for share in operation.shares:
             balances[share.user_id] -= share.amount or 0
-    for debt in storage.list_direct_debts(group_id):
+    direct_debts = (
+        direct_debts
+        if direct_debts is not None
+        else storage.list_direct_debts(group_id)
+    )
+    for debt in direct_debts:
         if debt.status != DebtStatus.active:
             continue
         balances[debt.debtor_id] -= debt.amount
         balances[debt.creditor_id] += debt.amount
-    for payment in storage.list_payments(group_id):
+    payments = payments if payments is not None else storage.list_payments(group_id)
+    for payment in payments:
         balances[payment.from_user_id] += payment.amount
         balances[payment.to_user_id] -= payment.amount
     return {user_id: round(value, 2) for user_id, value in balances.items()}
 
 
-def get_balance_items(storage: Storage, group_id: str) -> list[BalanceItem]:
-    balances = calculate_net_balances(storage, group_id)
+def get_balance_items(
+    storage: Storage,
+    group_id: str,
+    *,
+    users: list[User] | None = None,
+    balances: dict[str, float] | None = None,
+) -> list[BalanceItem]:
+    users = users if users is not None else storage.list_users(group_id)
+    balances = (
+        balances
+        if balances is not None
+        else calculate_net_balances(storage, group_id, users=users)
+    )
     result = []
-    for user in storage.list_users(group_id):
+    for user in users:
         balance = balances[user.id]
         status = "is_owed" if balance > 0 else "owes" if balance < 0 else "settled"
         result.append(
@@ -47,9 +79,20 @@ def get_balance_items(storage: Storage, group_id: str) -> list[BalanceItem]:
     return result
 
 
-def simplify_transfers(storage: Storage, group_id: str) -> list[Transfer]:
-    balances = calculate_net_balances(storage, group_id)
-    names = {user.id: user.name for user in storage.list_users(group_id)}
+def simplify_transfers(
+    storage: Storage,
+    group_id: str,
+    *,
+    users: list[User] | None = None,
+    balances: dict[str, float] | None = None,
+) -> list[Transfer]:
+    users = users if users is not None else storage.list_users(group_id)
+    balances = (
+        balances
+        if balances is not None
+        else calculate_net_balances(storage, group_id, users=users)
+    )
+    names = {user.id: user.name for user in users}
     debtors = [
         [user_id, -amount] for user_id, amount in balances.items() if amount < -0.009
     ]
@@ -83,9 +126,16 @@ def simplify_transfers(storage: Storage, group_id: str) -> list[Transfer]:
 
 
 def dashboard_summary(
-    storage: Storage, group_id: str, user_id: str
+    storage: Storage,
+    group_id: str,
+    user_id: str,
+    *,
+    operations: list[Operation] | None = None,
+    transfers: list[Transfer] | None = None,
 ) -> DashboardSummary:
-    operations = storage.list_operations(group_id)
+    operations = (
+        operations if operations is not None else storage.list_operations(group_id)
+    )
     total_expenses = sum(
         o.amount for o in operations if o.type == OperationType.expense
     )
@@ -94,7 +144,9 @@ def dashboard_summary(
         for o in operations
         if o.type == OperationType.expense and o.payer_id == user_id
     )
-    transfers = simplify_transfers(storage, group_id)
+    transfers = (
+        transfers if transfers is not None else simplify_transfers(storage, group_id)
+    )
     return DashboardSummary(
         group_id=group_id,
         current_user_id=user_id,
@@ -109,10 +161,17 @@ def dashboard_summary(
     )
 
 
-def analytics(storage: Storage, group_id: str, months: int | None = None) -> dict:
-    operations = [
-        o for o in storage.list_operations(group_id) if o.type == OperationType.expense
-    ]
+def analytics(
+    storage: Storage,
+    group_id: str,
+    months: int | None = None,
+    *,
+    operations: list[Operation] | None = None,
+) -> dict:
+    operations = (
+        operations if operations is not None else storage.list_operations(group_id)
+    )
+    operations = [o for o in operations if o.type == OperationType.expense]
     if months is not None:
         today = datetime.now(timezone.utc).date()
         first_month_index = today.year * 12 + today.month - months

@@ -31,6 +31,7 @@ from app.models import (
 )
 from app.services import (
     analytics,
+    calculate_net_balances,
     dashboard_summary,
     get_balance_items,
     parse_receipt_qr,
@@ -155,12 +156,29 @@ def get_dashboard(
 ):
     require_group(group_id)
     validate_group_users(group_id, [user_id])
+    users = storage.list_users(group_id)
+    operations = storage.list_operations(group_id)
+    direct_debts = storage.list_direct_debts(group_id)
+    payments = storage.list_payments(group_id)
+    balances = calculate_net_balances(
+        storage,
+        group_id,
+        users=users,
+        operations=operations,
+        direct_debts=direct_debts,
+        payments=payments,
+    )
+    transfers = simplify_transfers(storage, group_id, users=users, balances=balances)
     return {
         "group": storage.get_group(group_id),
-        "summary": dashboard_summary(storage, group_id, user_id),
-        "recent_operations": storage.list_operations(group_id)[:5],
-        "balances": get_balance_items(storage, group_id),
-        "analytics": analytics(storage, group_id),
+        "summary": dashboard_summary(
+            storage, group_id, user_id, operations=operations, transfers=transfers
+        ),
+        "recent_operations": operations[:5],
+        "balances": get_balance_items(
+            storage, group_id, users=users, balances=balances
+        ),
+        "analytics": analytics(storage, group_id, operations=operations),
     }
 
 
