@@ -1,8 +1,10 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 from app.models import User
+from app.config import settings
 
 AI_DIR = Path(__file__).resolve().parent.parent / "ai"
 PROMPT_PATH = AI_DIR / "finance_assistant_prompt.txt"
@@ -25,7 +27,7 @@ def build_system_prompt(
     prompt = PROMPT_PATH.read_text(encoding="utf-8")
     replacements = {
         "{{current_date}}": (
-            current_date or datetime.now(timezone.utc).date()
+            current_date or datetime.now(ZoneInfo(settings.app_timezone)).date()
         ).isoformat(),
         "{{group_id}}": group_id,
         "{{currency}}": currency,
