@@ -73,7 +73,9 @@ def parse_receipt_qr_image(content: bytes) -> ReceiptDraft:
     if amount <= 0:
         raise ValueError('В QR-коде не указана сумма покупки')
     try:
-        purchased_at = datetime.strptime(raw_date[:13], '%Y%m%dT%H%M').replace(tzinfo=timezone.utc)
+        normalized_date = raw_date.replace(' ', 'T')
+        fmt = '%Y%m%dT%H%M' if 'T' in normalized_date else '%Y%m%d%H%M'
+        purchased_at = datetime.strptime(normalized_date[:13], fmt).replace(tzinfo=timezone.utc)
     except ValueError:
         purchased_at = datetime.now(timezone.utc)
     return ReceiptDraft(merchant='Чек по QR-коду', amount=amount, purchased_at=purchased_at,
