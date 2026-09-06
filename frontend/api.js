@@ -465,6 +465,17 @@
     document.getElementById('invite-member-btn')?.addEventListener('click', openInviteDialog);
   }
 
+  async function hydrateCurrentPage() {
+    const path = location.pathname;
+    if (path.endsWith('/index.html') || path.endsWith('/app/')) return hydrateDashboard();
+    if (path.endsWith('operations.html') || path.endsWith('finances.html')) return hydrateOperations();
+    if (path.endsWith('balances.html')) return hydrateBalances();
+    if (path.endsWith('analytics.html')) return hydrateAnalytics();
+    if (path.endsWith('debts.html')) return hydrateDebts();
+    if (path.endsWith('members.html')) return hydrateMembers();
+    return undefined;
+  }
+
   function openInviteDialog() {
     document.getElementById('api-invite-modal')?.remove();
     const inviteUrl = `${location.origin}/app/onboarding.html?invite=${encodeURIComponent(GROUP_ID)}`;
@@ -715,9 +726,8 @@
       await loadContext();
       enhanceOperationForm();
       bindAnalyticsPeriods();
-      await Promise.all([hydrateOperations(), hydrateDashboard(), hydrateBalances(), hydrateAnalytics(), hydrateDebts()]);
+      await hydrateCurrentPage();
       bindOperationFilters();
-      await hydrateMembers();
       await bindSettings();
       bindAiChat(); bindReceipt();
       document.querySelectorAll('.topbar-right .icon-btn').forEach((item) => item.remove());
