@@ -29,6 +29,9 @@ def test_frontend_is_served_with_backend_integration():
     assert client.get("/app/api.js").status_code == 200
     assert "<span>🧑</span>" not in client.get("/app/index.html").text
     assert '<div class="av">🧔</div>' not in client.get("/app/index.html").text
+    assert 'id="invite-member-btn"' in client.get("/app/members.html").text
+    assert "Свести баланс" not in client.get("/app/balances.html").text
+    assert "Закрытые долги" not in client.get("/app/debts.html").text
 
 
 def test_clean_start_creates_group_owner_and_zero_dashboard(monkeypatch):

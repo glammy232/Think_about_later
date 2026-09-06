@@ -338,15 +338,33 @@
       <div class="member-avatar">${escapeHtml(memberInitial(member.id))}</div>
       <div class="member-info"><b>${escapeHtml(member.name)}</b><span>Участник группы</span></div>
       <span class="member-role ${index ? 'guest' : ''}">${index ? 'Участник' : 'Админ'}</span></div>`).join('');
-    const button = document.querySelector('.page-head .primary-btn');
-    button?.addEventListener('click', async () => {
-      const name = prompt('Имя нового участника');
-      if (!name?.trim()) return;
+    document.getElementById('invite-member-btn')?.addEventListener('click', openInviteDialog);
+  }
+
+  function openInviteDialog() {
+    document.getElementById('api-invite-modal')?.remove();
+    const inviteUrl = `${location.origin}/app/onboarding.html?invite=${encodeURIComponent(GROUP_ID)}`;
+    const overlay = document.createElement('div');
+    overlay.id = 'api-invite-modal';
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal">
+      <div class="modal-head"><h3>Пригласить участника</h3><button type="button" class="modal-close" aria-label="Закрыть">×</button></div>
+      <p class="api-invite-note">Отправьте эту ссылку человеку. По ней он сможет ввести своё имя и присоединиться к группе «${escapeHtml(state.group.name)}».</p>
+      <div class="api-invite-link"><input type="text" value="${escapeHtml(inviteUrl)}" readonly><button type="button" class="primary-btn compact-action">Копировать</button></div>
+    </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('open'));
+    const close = () => { overlay.classList.remove('open'); setTimeout(() => overlay.remove(), 250); };
+    overlay.querySelector('.modal-close').addEventListener('click', close);
+    overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
+    overlay.querySelector('.api-invite-link button').addEventListener('click', async () => {
+      const input = overlay.querySelector('.api-invite-link input');
       try {
-        await request(`/groups/${GROUP_ID}/members`, { method: 'POST', body: JSON.stringify({ name: name.trim() }) });
-        notify('Участник добавлен');
-        location.reload();
-      } catch (error) { notify(error.message, true); }
+        await navigator.clipboard.writeText(inviteUrl);
+      } catch (_) {
+        input.select(); document.execCommand('copy');
+      }
+      notify('Ссылка приглашения скопирована');
     });
   }
 

@@ -34,34 +34,56 @@
     </section>
   </main>
   <script>
+    const inviteGroup = new URLSearchParams(location.search).get('invite');
     const existingGroup = localStorage.getItem('krug_group_id');
     const existingUser = localStorage.getItem('krug_user_id');
-    if (existingGroup && existingUser) {
+    const form = document.getElementById('create-group-form');
+    const submitButton = form.querySelector('button');
+    let submitLabel = 'Создать группу';
+    if (inviteGroup) {
+      document.title = 'Вступление в группу — Круг';
+      document.querySelector('.step').textContent = 'Приглашение';
+      document.querySelector('.form-side h2').textContent = 'Вступить в группу';
+      document.querySelector('.subtitle').textContent = 'Введите имя, под которым вас увидят остальные участники.';
+      document.getElementById('group-name').closest('.field').hidden = true;
+      document.getElementById('group-name').required = false;
+      document.querySelector('.hint').textContent = 'После вступления откроется общий дашборд группы.';
+      submitLabel = submitButton.textContent = 'Присоединиться';
+      fetch(`/api/groups/${encodeURIComponent(inviteGroup)}`)
+        .then(async (response) => {
+          if (!response.ok) throw new Error();
+          const group = await response.json();
+          document.querySelector('.form-side h2').textContent = `Вступить в «${group.name}»`;
+        })
+        .catch(() => {
+          document.getElementById('error').textContent = 'Ссылка приглашения недействительна';
+          submitButton.disabled = true;
+        });
+    } else if (existingGroup && existingUser) {
       fetch(`/api/groups/${encodeURIComponent(existingGroup)}`)
         .then((response) => response.ok ? location.replace('index.html') : Promise.reject())
         .catch(() => { localStorage.removeItem('krug_group_id'); localStorage.removeItem('krug_user_id'); });
     }
-    document.getElementById('create-group-form').addEventListener('submit', async (event) => {
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const button = event.currentTarget.querySelector('button');
       const error = document.getElementById('error');
-      button.disabled = true; button.textContent = 'Создаём…'; error.textContent = '';
+      button.disabled = true; button.textContent = inviteGroup ? 'Присоединяем…' : 'Создаём…'; error.textContent = '';
       try {
-        const response = await fetch('/api/groups', {
+        const response = await fetch(inviteGroup ? `/api/groups/${encodeURIComponent(inviteGroup)}/members` : '/api/groups', {
           method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({
-            name: document.getElementById('group-name').value.trim(),
-            owner_name: document.getElementById('owner-name').value.trim()
-          })
+          body: JSON.stringify(inviteGroup
+            ? {name: document.getElementById('owner-name').value.trim()}
+            : {name: document.getElementById('group-name').value.trim(), owner_name: document.getElementById('owner-name').value.trim()})
         });
         const data = await response.json();
         if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Проверьте заполнение полей');
-        localStorage.setItem('krug_group_id', data.group.id);
-        localStorage.setItem('krug_user_id', data.owner.id);
+        localStorage.setItem('krug_group_id', inviteGroup || data.group.id);
+        localStorage.setItem('krug_user_id', inviteGroup ? data.id : data.owner.id);
         location.replace('index.html');
       } catch (reason) {
         error.textContent = reason.message || 'Не удалось создать группу';
-        button.disabled = false; button.textContent = 'Создать группу';
+        button.disabled = false; button.textContent = submitLabel;
       }
     });
   </script>

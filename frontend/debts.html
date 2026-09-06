@@ -494,7 +494,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           <h1>Задолженности</h1>
           <p>Незакрытые долги между участниками квартиры</p>
         </div>
-        <button class="primary-btn" data-clickable data-open-debt-modal="in">
+        <button class="primary-btn compact-action" data-clickable data-open-debt-modal="in">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           Добавить долг
         </button>
@@ -520,22 +520,6 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           <div class="amt">+850 ₽</div>
           <button class="ghost-btn" data-clickable>Напомнить</button>
         </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><h3>Закрытые долги</h3></div>
-        <div class="tx-row">
-          <div class="tx-icon" style="background:var(--green-light);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-          <div class="tx-info"><b>Павел вернул долг Алексею</b><span>За аренду в марте</span></div>
-          <div class="tx-amount income">3 000 ₽</div>
-          <div class="tx-date">2 апр</div>
-        </div>
-        <div class="tx-row">
-          <div class="tx-icon" style="background:var(--green-light);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-          <div class="tx-info"><b>Вы вернули долг Марии</b><span>За продукты</span></div>
-          <div class="tx-amount income">640 ₽</div>
-          <div class="tx-date">28 мар</div>
         </div>
       </div>
 
@@ -950,6 +934,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
   </script>
-  <script src="api.js?v=14"></script>
+  <script src="api.js?v=15"></script>
 </body>
 </html>
