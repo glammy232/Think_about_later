@@ -1,6 +1,7 @@
 import json
 import base64
 import re
+from urllib.parse import parse_qs
 from datetime import datetime, timezone
 from io import BytesIO
 
@@ -30,6 +31,30 @@ def _number(value) -> float:
     if isinstance(value, (int, float)):
         return float(value)
     return float(re.sub(r'[^0-9.,-]', '', str(value)).replace(',', '.') or 0)
+
+
+def parse_receipt_qr_image(content: bytes) -> ReceiptDraft:
+    """Decode Russian fiscal QR and return only its amount/date as expense draft."""
+    try:
+        import cv2
+        import numpy as np
+        image = cv2.imdecode(np.frombuffer(content, dtype=np.uint8), cv2.IMREAD_COLOR)
+        value, _, _ = cv2.QRCodeDetector().detectAndDecode(image)
+    except Exception as exc:
+        raise ValueError('Не удалось прочитать QR-код чека') from exc
+    if not value:
+        raise ValueError('QR-код на изображении не найден')
+    fields = parse_qs(value.lstrip('?&'))
+    amount = _number((fields.get('s') or ['0'])[0])
+    raw_date = (fields.get('t') or [''])[0]
+    if amount <= 0:
+        raise ValueError('В QR-коде не указана сумма покупки')
+    try:
+        purchased_at = datetime.strptime(raw_date, '%Y%m%dT%H%M').replace(tzinfo=timezone.utc)
+    except ValueError:
+        purchased_at = datetime.now(timezone.utc)
+    return ReceiptDraft(merchant='Чек по QR-коду', amount=amount, purchased_at=purchased_at,
+                        category='Другое', fiscal_fields={'qr_data': value, 'date': raw_date}, items=[], provider='qr')
 
 
 def scan_receipt_image(content: bytes, filename: str, content_type: str) -> ReceiptDraft:

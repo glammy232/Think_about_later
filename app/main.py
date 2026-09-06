@@ -38,7 +38,7 @@ from app.services import (
     simplify_transfers,
 )
 from app.storage import storage
-from app.receipt_scanner import scan_receipt_image
+from app.receipt_scanner import parse_receipt_qr_image, scan_receipt_image
 from starlette.concurrency import run_in_threadpool
 
 app = FastAPI(
@@ -326,7 +326,7 @@ async def scan_receipt(file: UploadFile = File(...)):
     if not content or len(content) > 10 * 1024 * 1024:
         raise HTTPException(status_code=422, detail="Размер изображения должен быть от 1 байта до 10 МБ")
     try:
-        return await run_in_threadpool(scan_receipt_image, content, file.filename or "receipt.jpg", file.content_type)
+        return await run_in_threadpool(parse_receipt_qr_image, content)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
