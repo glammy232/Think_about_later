@@ -4,7 +4,6 @@ const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
 const fs = require("fs");
-const { GigaChat } = require("gigachat");
 
 const app = express();
 
@@ -14,144 +13,66 @@ const upload = multer({
 
 app.use(cors());
 
-const giga = new GigaChat({
-    credentials: process.env.GIGACHAT_CREDENTIALS,
-    scope: "GIGACHAT_API_PERS",
-    baseUrl: "https://gigachat.devices.sberbank.ru/api/v1",
-    verifySslCerts: false,
-    timeout: 600
-});
-
 app.post("/upload-receipt", upload.single("receipt"), async (req, res) => {
 
     try {
 
         console.log("Чек получен!");
 
-        const file = new File(
-            [fs.readFileSync(req.file.path)],
-            req.file.originalname,
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Фотография чека не загружена."
+            });
+        }
+
+        const imageBuffer = fs.readFileSync(req.file.path);
+
+        const base64Image =
+            imageBuffer.toString("base64");
+
+        const mimeType =
+            req.file.mimetype || "image/jpeg";
+
+        console.log("Фото подготовлено для DeepSeek!");
+
+        const response = await fetch(
+            "https://api.deepseek.com/chat/completions",
             {
-                type: req.file.mimetype
-            }
-        );
+                method: "POST",
 
-        const uploadedFile = await giga.uploadFile(file);
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization":
+                        `Bearer ${process.env.DEEPSEEK_API_KEY}`
+                },
 
-        console.log("Фото отправлено в GigaChat!");
+                body: JSON.stringify({
 
-        const response = await giga.chat({
-            model: "GigaChat-2-Pro",
+                    model:
+                        "deepseek-v4-flash-vision-exp",
 
-            messages: [
-                {
-                    role: "user",
+                    messages: [
 
-                    content: `
-Ты — система автоматического распознавания кассовых чеков.
+                        {
+                            role: "user",
 
-На фотографии находится кассовый чек.
+                            content: [
 
-Твоя задача — внимательно прочитать ВСЮ информацию с фотографии и вернуть структурированные данные.
+                                {
+                                    type: "text",
 
-ОЧЕНЬ ВАЖНО:
+                                    text: `
+Это фотография кассового чека.
 
-1. Не придумывай информацию.
-2. Если текст на фотографии плохо читается, постарайся определить его по контексту, но не выдумывай название товара.
-3. Не пропускай товары.
-4. Для каждого товара отдельно укажи его название и цену.
-5. Если на чеке есть количество товара, учитывай его.
-6. Не включай в список товаров скидки, налоги, сдачу, оплату картой, банковские операции и итоговые служебные строки.
-7. НЕ нужно определять магазин.
-8. НЕ нужно искать или распознавать QR-код.
-9. Дата должна быть взята именно с чека.
-10. Итоговая сумма должна быть взята именно из строки с итогом к оплате.
+Распознай информацию на изображении.
 
-КАТЕГОРИЮ КАЖДОГО ТОВАРА ОПРЕДЕЛЯЙ ТОЛЬКО ИЗ ЭТОГО СПИСКА:
-
-- продукты
-- кафе и рестораны
-- транспорт
-- здоровье
-- красота
-- одежда
-- электроника
-- дом
-- развлечения
-- образование
-- спорт
-- путешествия
-- услуги
-- другое
-
-СТРОГИЕ ПРАВИЛА ДЛЯ КАТЕГОРИЙ:
-
-"продукты" —
-еда, напитки, продукты питания, молочные продукты, мясо, рыба, овощи, фрукты, хлеб, сладости и продукты для приготовления еды.
-
-"кафе и рестораны" —
-готовая еда, заказ еды, ресторан, кафе, столовая, фастфуд, доставка готовой еды.
-
-"транспорт" —
-бензин, дизель, зарядка автомобиля, общественный транспорт, такси, парковка, автомойка.
-
-"здоровье" —
-лекарства, витамины, медицинские товары, анализы, стоматология, медицинские услуги, врачи, клиники.
-
-"красота" —
-косметика, шампуни, кремы, средства ухода за телом, парикмахерские услуги, маникюр, педикюр, салоны красоты.
-
-"одежда" —
-одежда, обувь, нижнее бельё, аксессуары, сумки.
-
-"электроника" —
-телефоны, компьютеры, комплектующие, наушники, зарядные устройства, бытовая электроника и техника.
-
-"дом" —
-мебель, посуда, бытовая химия, товары для уборки, товары для дома, хозяйственные товары, предметы интерьера.
-
-"развлечения" —
-кино, театр, концерты, игры, книги для развлечения, подписки на развлечения.
-
-"образование" —
-учебники, курсы, обучение, репетиторы, образовательные услуги.
-
-"спорт" —
-спортивная одежда, спортивный инвентарь, тренажёры, спортивные услуги, фитнес.
-
-"путешествия" —
-отели, авиабилеты, билеты на поезд, туристические услуги.
-
-"услуги" —
-услуги, которые нельзя отнести к другим категориям: ремонт, доставка товаров, юридические услуги, бытовые услуги и т.п.
-
-"другое" —
-только если товар действительно невозможно отнести ни к одной категории выше.
-
-ВАЖНО:
-Не используй категорию "другое", если товар можно логично отнести к одной из указанных категорий.
-
-Например:
-
-Молоко → продукты
-Хлеб → продукты
-Кофе в кафе → кафе и рестораны
-Шампунь → красота
-Зубная паста → красота
-Ибупрофен → здоровье
-Стоматологическая услуга → здоровье
-Бензин → транспорт
-Зарядка телефона → электроника
-Сковорода → дом
-Футболка → одежда
-Билет в кино → развлечения
-Абонемент в спортзал → спорт
-
-Верни ТОЛЬКО JSON.
+Верни данные только в формате JSON.
 
 Используй строго такую структуру:
 
 {
+  "shop": "",
   "date": "",
   "total": "",
   "items": [
@@ -163,52 +84,176 @@ app.post("/upload-receipt", upload.single("receipt"), async (req, res) => {
   ]
 }
 
-Не добавляй никакого текста до или после JSON.
-`,
+Правила:
 
-                    attachments: [uploadedFile.id]
-                }
-            ],
+- shop — название магазина или организации.
+- date — дата покупки.
+- total — итоговая сумма покупки.
+- items — список всех товаров или услуг, которые видны на чеке.
+- name — название товара или услуги.
+- price — цена товара или услуги.
+- category — категория товара или услуги.
 
-            temperature: 0.05
-        });
+Для category используй одну из этих категорий:
 
-        console.log("GigaChat ответил!");
+продукты
+кафе и рестораны
+транспорт
+здоровье
+красота
+одежда
+электроника
+дом
+развлечения
+образование
+спорт
+путешествия
+услуги
+другое
+
+Если категорию невозможно определить, используй "другое".
+
+Не придумывай данные, которых нет на фотографии.
+
+Если какое-то поле невозможно прочитать, оставь его пустым.
+
+Обязательно верни валидный JSON без текста до или после JSON.
+`
+                                },
+
+                                {
+                                    type: "image_url",
+
+                                    image_url: {
+                                        url:
+                                            `data:${mimeType};base64,${base64Image}`
+                                    }
+
+                                }
+
+                            ]
+
+                        }
+
+                    ],
+
+                    response_format: {
+                        type: "json_object"
+                    },
+
+                    thinking: {
+                        type: "disabled"
+                    },
+
+                    max_tokens: 4000,
+
+                    stream: false
+
+                })
+
+            }
+        );
+
+
+        if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            console.error(
+                "DeepSeek HTTP ошибка:",
+                response.status
+            );
+
+            console.error(
+                "Ответ DeepSeek:",
+                errorText
+            );
+
+            throw new Error(
+                `DeepSeek вернул ошибку ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        console.log("DeepSeek ответил!");
+
 
         const result =
-            response.choices[0].message.content;
+            data.choices?.[0]?.message?.content;
+
+
+        if (!result) {
+
+            throw new Error(
+                "DeepSeek не вернул результат."
+            );
+
+        }
+
 
         console.log(result);
 
+
+        // Проверяем, что DeepSeek действительно
+        // вернул корректный JSON.
+        JSON.parse(result);
+
+
         res.json({
+
             success: true,
-            message: "Чек распознан!",
-            result: result
+
+            message:
+                "Чек распознан!",
+
+            result:
+                result
+
         });
+
 
     }
 
     catch (error) {
 
         console.error(
-            "Статус:",
-            error.response?.status
-        );
-
-        console.error(
-            "Ответ GigaChat:",
-            error.response?.data
-        );
-
-        console.error(
             "Ошибка:",
             error.message
         );
 
+
         res.status(500).json({
+
             success: false,
-            message: "Не удалось распознать чек"
+
+            message:
+                "Не удалось распознать чек."
+
         });
+
+    }
+
+    finally {
+
+        // Удаляем временную фотографию
+        // после обработки.
+
+        if (
+            req.file &&
+            fs.existsSync(req.file.path)
+        ) {
+
+            fs.unlinkSync(
+                req.file.path
+            );
+
+        }
 
     }
 
@@ -217,7 +262,9 @@ app.post("/upload-receipt", upload.single("receipt"), async (req, res) => {
 
 app.listen(3000, () => {
 
-    console.log("Backend запущен!");
+    console.log(
+        "Backend запущен!"
+    );
 
     console.log(
         "Адрес: http://localhost:3000"
