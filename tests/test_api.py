@@ -27,6 +27,7 @@ def test_frontend_is_served_with_backend_integration():
     assert "Финансовый помощник" in response.text
     assert "owner-avatar" not in response.text
     assert client.get("/app/api.js").status_code == 200
+    assert "<span>🧑</span>" not in client.get("/app/index.html").text
 
 
 def test_clean_start_creates_group_owner_and_zero_dashboard(monkeypatch):

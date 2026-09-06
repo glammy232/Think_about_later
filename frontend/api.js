@@ -55,6 +55,15 @@
       request(`/groups/${GROUP_ID}`),
       request(`/groups/${GROUP_ID}/members`),
     ]);
+    const avatarColors = ['#f6cf8e', '#f0b7b0', '#a9d3e5', '#cfe8d7', '#ded1ef', '#f2d5aa'];
+    document.querySelectorAll('.household .avatars').forEach((avatars) => {
+      avatars.innerHTML = state.members.map((member, index) => {
+        const content = member.avatar_url
+          ? `<img src="${escapeHtml(member.avatar_url)}" alt="">`
+          : escapeHtml(member.name.trim().charAt(0).toUpperCase());
+        return `<span title="${escapeHtml(member.name)}" style="background:${avatarColors[index % avatarColors.length]}">${content}</span>`;
+      }).join('');
+    });
     document.querySelectorAll('.household .info').forEach((info) => {
       const title = info.querySelector('b');
       const subtitle = info.querySelector('span');
