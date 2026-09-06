@@ -598,6 +598,13 @@
     whoField?.insertAdjacentElement('afterend', split);
     renderParticipants();
     split.querySelector('select').addEventListener('change', renderParticipants);
+    const updateIncomeFields = () => {
+      const income = document.querySelector('#modal-overlay .type-toggle button.active')?.dataset.type === 'income';
+      if (whoField) whoField.hidden = income;
+      split.hidden = income;
+    };
+    document.querySelectorAll('.type-toggle button[data-type], .action-btn.income,[data-open-modal="income"]').forEach((button) => button.addEventListener('click', () => setTimeout(updateIncomeFields)));
+    updateIncomeFields();
   }
 
   function renderParticipants() {
