@@ -6,3 +6,6 @@ __pycache__/
 .idea/
 .DS_Store
 
+# Supabase local runtime
+supabase/.branches
+supabase/.temp

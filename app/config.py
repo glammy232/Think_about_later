@@ -19,6 +19,7 @@ class Settings:
     deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
     deepseek_base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
     deepseek_model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+    database_url = os.getenv("DATABASE_URL", "")
 
 
 settings = Settings()

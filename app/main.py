@@ -41,7 +41,7 @@ from app.storage import storage
 app = FastAPI(
     title=settings.app_name,
     version=settings.version,
-    description="REST API для сервиса совместных финансов «Круг». Временное хранилище — in-memory.",
+    description="REST API для сервиса совместных финансов «Круг».",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -90,7 +90,7 @@ def root():
 def health():
     return {
         "status": "ok",
-        "storage": "in-memory",
+        "storage": storage.__class__.__name__,
         "ai": "configured" if DeepSeekAssistant.configured() else "not_configured",
     }
 
@@ -374,8 +374,7 @@ def get_settings(user_id: str):
     user = storage.get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    preferences = storage.settings.get(user_id, {"currency": "RUB"})
-    return {"name": user.name, "avatar_url": user.avatar_url, **preferences}
+    return {"name": user.name, "avatar_url": user.avatar_url, "currency": "RUB"}
 
 
 @app.patch("/api/users/{user_id}/settings", tags=["settings"])
@@ -385,10 +384,7 @@ def update_settings(user_id: str, data: SettingsUpdate):
         raise HTTPException(status_code=404, detail="User not found")
     if data.name is not None:
         user = storage.update_user_profile(user_id, data.name)
-    current = storage.settings.get(user_id, {"currency": "RUB"})
-    current.update(data.model_dump(exclude={"name"}, exclude_none=True))
-    storage.settings[user_id] = current
-    return {"name": user.name, "avatar_url": user.avatar_url, **current}
+    return {"name": user.name, "avatar_url": user.avatar_url, "currency": "RUB"}
 
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"

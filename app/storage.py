@@ -131,9 +131,7 @@ class InMemoryStorage:
     def get_user(self, user_id: str) -> User | None:
         return deepcopy(self.users.get(user_id))
 
-    def update_user_profile(
-        self, user_id: str, name: str | None = None
-    ) -> User | None:
+    def update_user_profile(self, user_id: str, name: str | None = None) -> User | None:
         user = self.users.get(user_id)
         if not user:
             return None
@@ -272,4 +270,14 @@ class InMemoryStorage:
         return deepcopy(payment)
 
 
-storage: Storage = InMemoryStorage(seed_demo=False)
+def build_storage() -> Storage:
+    from app.config import settings
+
+    if settings.database_url:
+        from app.database_storage import PostgresStorage
+
+        return PostgresStorage(settings.database_url)
+    return InMemoryStorage(seed_demo=False)
+
+
+storage: Storage = build_storage()
