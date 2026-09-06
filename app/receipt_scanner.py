@@ -36,6 +36,15 @@ def scan_receipt_image(content: bytes, filename: str, content_type: str) -> Rece
     if not settings.deepseek_api_key:
         raise RuntimeError('Сканер чеков не настроен: добавьте DEEPSEEK_API_KEY в .env')
     from openai import OpenAI
+    # Телефоны часто присылают HEIC/неподдерживаемый формат — нормализуем в JPEG.
+    if content_type.lower() not in {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}:
+        try:
+            from PIL import Image
+            image = Image.open(BytesIO(content)).convert('RGB')
+            output = BytesIO(); image.save(output, format='JPEG', quality=90)
+            content, content_type = output.getvalue(), 'image/jpeg'
+        except Exception as exc:
+            raise ValueError('Не удалось прочитать формат изображения чека') from exc
     client = OpenAI(api_key=settings.deepseek_api_key, base_url=settings.deepseek_base_url)
     image_url = f'data:{content_type};base64,{base64.b64encode(content).decode()}'
     result = client.chat.completions.create(model='deepseek-v4-flash-vision-exp', temperature=0.05,
