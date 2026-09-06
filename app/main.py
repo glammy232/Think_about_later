@@ -2,10 +2,13 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from openai import APIError
 
+from app.ai_service import DeepSeekAssistant
 from app.config import settings
 from app.dependencies import current_user_id
 from app.models import (
+    AssistantActionResponse,
     AssistantRequest,
     AssistantResponse,
     Debt,
@@ -80,7 +83,11 @@ def root():
 
 @app.get("/api/health", tags=["system"])
 def health():
-    return {"status": "ok", "storage": "in-memory"}
+    return {
+        "status": "ok",
+        "storage": "in-memory",
+        "ai": "configured" if DeepSeekAssistant.configured() else "not_configured",
+    }
 
 
 @app.get("/api/groups/{group_id}", tags=["groups"])
@@ -277,15 +284,70 @@ def parse_receipt(data: ReceiptParseRequest):
     response_model=AssistantResponse,
     tags=["assistant"],
 )
-def ask_assistant(group_id: str, data: AssistantRequest):
+def ask_assistant(
+    group_id: str,
+    data: AssistantRequest,
+    user_id: Annotated[str, Depends(current_user_id)],
+):
     require_group(group_id)
-    report = analytics(storage, group_id)
-    top = max(report["by_category"], key=lambda item: item["amount"], default=None)
-    if top:
-        answer = f"Пока я работаю в демо-режиме. Самая крупная категория — {top['name']}: {top['amount']:.2f} ₽."
-    else:
-        answer = "Пока недостаточно данных для анализа расходов."
-    return AssistantResponse(answer=answer)
+    validate_group_users(group_id, [user_id])
+    if not DeepSeekAssistant.configured():
+        raise HTTPException(status_code=503, detail="DeepSeek API is not configured")
+    try:
+        answer, conversation_id, pending = DeepSeekAssistant(storage).ask(
+            group_id, user_id, data.message, data.conversation_id
+        )
+    except APIError as exc:
+        raise HTTPException(
+            status_code=502, detail="DeepSeek API request failed"
+        ) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return AssistantResponse(
+        answer=answer,
+        conversation_id=conversation_id,
+        pending_action=pending,
+    )
+
+
+@app.post(
+    "/api/groups/{group_id}/assistant/actions/{action_id}/confirm",
+    response_model=AssistantActionResponse,
+    tags=["assistant"],
+)
+def confirm_assistant_action(
+    group_id: str,
+    action_id: str,
+    user_id: Annotated[str, Depends(current_user_id)],
+):
+    require_group(group_id)
+    try:
+        return DeepSeekAssistant(storage, client=object()).confirm(
+            group_id, user_id, action_id
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post(
+    "/api/groups/{group_id}/assistant/actions/{action_id}/cancel",
+    response_model=AssistantActionResponse,
+    tags=["assistant"],
+)
+def cancel_assistant_action(
+    group_id: str,
+    action_id: str,
+    user_id: Annotated[str, Depends(current_user_id)],
+):
+    require_group(group_id)
+    try:
+        return DeepSeekAssistant(storage, client=object()).cancel(
+            group_id, user_id, action_id
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.get("/api/users/{user_id}/settings", tags=["settings"])

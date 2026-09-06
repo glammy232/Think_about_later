@@ -1,6 +1,10 @@
 import os
 from typing import ClassVar
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class Settings:
     app_name = "Круг API"
@@ -12,6 +16,9 @@ class Settings:
         ).split(",")
         if item.strip()
     ]
+    deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
+    deepseek_base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+    deepseek_model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
 
 
 settings = Settings()

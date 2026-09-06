@@ -234,11 +234,20 @@ class ReceiptDraft(BaseModel):
 
 class AssistantRequest(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
+    conversation_id: str | None = Field(default=None, max_length=80)
 
 
 class AssistantResponse(BaseModel):
     answer: str
-    mode: str = "mock"
+    mode: str = "deepseek"
+    conversation_id: str
+    pending_action: dict | None = None
+
+
+class AssistantActionResponse(BaseModel):
+    action_id: str
+    status: str
+    result: dict | None = None
 
 
 class SettingsUpdate(BaseModel):
