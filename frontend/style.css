@@ -224,6 +224,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .api-ai-messages{scrollbar-width:none;-ms-overflow-style:none}.api-ai-messages::-webkit-scrollbar{display:none}
 .api-y-axis{position:absolute;left:18px;top:112px;bottom:42px;display:flex;flex-direction:column;justify-content:space-between;color:var(--text-muted);font-size:10px;pointer-events:none}.panel:has(.api-y-axis) svg{margin-left:42px}.panel:has(.api-y-axis) .trend-total{margin-left:42px}
 .panel:has(.api-y-axis){position:relative}
+.panel:has(.api-y-axis) .api-month-labels{margin-left:42px;display:flex;justify-content:space-around;color:var(--text-muted);font-size:11px}.panel:has(.api-y-axis) svg{height:170px;width:calc(100% - 42px)}
 .ai-chat>.api-ai-messages{order:1}.ai-chat>.panel-head{order:0}.ai-chat>div:last-child{order:2;margin-top:auto}
 .api-ai-messages .ai-msg{box-shadow:0 1px 2px rgba(20,40,30,.05);border-radius:16px 16px 16px 4px}
 .api-ai-messages .ai-msg.me{border-radius:16px 16px 4px 16px}

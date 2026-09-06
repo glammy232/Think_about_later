@@ -475,11 +475,12 @@
         const height = viewBox[3];
         const slot = (width - 20) / values.length;
         const barWidth = Math.max(5, slot * 0.58);
-        trendChart.innerHTML = values.map((item, index) => {
+        const grid = [0, .5, 1].map((ratio) => `<line x1="10" x2="${width - 10}" y1="${height - 15 - ratio * (height - 30)}" y2="${height - 15 - ratio * (height - 30)}" stroke="#e7eeea" stroke-width="1"/>`).join('');
+        trendChart.innerHTML = `<defs><linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f9b61"/><stop offset="1" stop-color="#57c58b"/></linearGradient></defs>${grid}` + values.map((item, index) => {
           const barHeight = item.amount ? Math.max(3, item.amount / max * (height - 30)) : 0;
           const x = 10 + index * slot + (slot - barWidth) / 2;
           const y = height - 15 - barHeight;
-          return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="${Math.min(4, barWidth / 4)}" fill="#1a7a4c"><title>${escapeHtml(monthGenitive[Number(item.key.slice(5)) - 1])}: ${money(item.amount)}</title></rect>`;
+          return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="${Math.min(4, barWidth / 4)}" fill="url(#barGradient)" opacity="${item.amount ? 1 : .25}"><title>${escapeHtml(monthGenitive[Number(item.key.slice(5)) - 1])}: ${money(item.amount)}</title></rect>`;
         }).join('');
       }
     }
