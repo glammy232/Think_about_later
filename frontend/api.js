@@ -673,7 +673,8 @@
     const controls = [...panel.children].find((child) => child.querySelector('.ai-input'));
     if (controls && messages !== controls) panel.insertBefore(messages, controls);
     messages.innerHTML = '<div class="ai-msg">Привет! Я финансовый помощник. Спросите меня о расходах, долгах или попросите добавить операцию.</div>';
-    let conversationId = sessionStorage.getItem('krug_conversation_id');
+    // Версия диалога сбрасывается после обновления системных правил помощника.
+    let conversationId = sessionStorage.getItem('krug_conversation_id_v2');
     const draftCard = (action) => {
       const typeNames = { expense: 'Расход', income: 'Доход', debt: 'Долг' };
       const rows = action.type === 'debt'
@@ -729,7 +730,7 @@
       try {
         const response = await request(`/groups/${GROUP_ID}/assistant`, { method: 'POST', body: JSON.stringify({ message: text, conversation_id: conversationId }) });
         conversationId = response.conversation_id;
-        sessionStorage.setItem('krug_conversation_id', conversationId);
+        sessionStorage.setItem('krug_conversation_id_v2', conversationId);
         waiting.textContent = response.pending_action ? 'Проверьте подготовленный черновик:' : response.answer;
         if (response.pending_action) {
           waiting.insertAdjacentHTML('afterend', draftCard(response.pending_action));
