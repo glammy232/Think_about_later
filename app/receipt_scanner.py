@@ -36,6 +36,15 @@ def _number(value) -> float:
 def parse_receipt_qr_image(content: bytes) -> ReceiptDraft:
     """Decode Russian fiscal QR and return only its amount/date as expense draft."""
     try:
+        try:
+            from pillow_heif import register_heif_opener
+            register_heif_opener()
+            from PIL import Image
+            image_pil = Image.open(BytesIO(content)).convert('RGB')
+            normalized = BytesIO(); image_pil.save(normalized, format='JPEG', quality=95)
+            content = normalized.getvalue()
+        except Exception:
+            pass
         import cv2
         import numpy as np
         image = cv2.imdecode(np.frombuffer(content, dtype=np.uint8), cv2.IMREAD_COLOR)
@@ -64,6 +73,9 @@ def scan_receipt_image(content: bytes, filename: str, content_type: str) -> Rece
     # Телефоны часто присылают HEIC/неподдерживаемый формат — нормализуем в JPEG.
     if content_type.lower() not in {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}:
         try:
+            if content_type.lower() in {'image/heic', 'image/heif'}:
+                from pillow_heif import register_heif_opener
+                register_heif_opener()
             from PIL import Image
             image = Image.open(BytesIO(content)).convert('RGB')
             output = BytesIO(); image.save(output, format='JPEG', quality=90)
