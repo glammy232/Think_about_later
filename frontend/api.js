@@ -747,6 +747,8 @@
         const draft = await response.json();
         if (typeof window.openModal === 'function') window.openModal('expense');
         document.getElementById('modal-amount').value = draft.amount;
+        const receiptDate = document.getElementById('modal-date');
+        if (receiptDate && draft.purchased_at) receiptDate.value = draft.purchased_at.slice(0, 10);
         document.getElementById('modal-comment').value = draft.merchant || 'Чек';
         const category = document.getElementById('modal-category');
         if (category && draft.category) category.value = draft.category;
