@@ -358,9 +358,9 @@
       const groupIncome = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
       const groupExpenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
       const groupTotal = groupIncome - groupExpenses;
-      if (values[0]) values[0].textContent = `+${money(incomingTotal)}`;
-      if (values[1]) values[1].textContent = `−${money(outgoingTotal)}`;
-      if (values[2]) values[2].textContent = `${groupTotal >= 0 ? '+' : '−'}${money(Math.abs(groupTotal))}`;
+      if (values[0]) values[0].textContent = money(incomingTotal);
+      if (values[1]) values[1].textContent = money(outgoingTotal);
+      if (values[2]) values[2].textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
       const subtitles = document.querySelectorAll('.stats .stat-sub');
       if (subtitles[0]) subtitles[0].textContent = incoming.length ? `${incoming.length} ${incoming.length === 1 ? 'человек' : 'человека'}` : 'нет долгов';
       if (subtitles[1]) subtitles[1].textContent = outgoing.length ? `${outgoing.length} ${outgoing.length === 1 ? 'человек' : 'человека'}` : 'нет долгов';
