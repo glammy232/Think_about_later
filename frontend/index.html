@@ -744,7 +744,7 @@ function openModal(type) {
   if (title) title.textContent = currentModalType === 'expense' ? 'Новый расход' : 'Новый доход';
 
   const dateInput = document.getElementById('modal-date');
-  if (dateInput) dateInput.valueAsDate = new Date();
+  if (dateInput) dateInput.valueAsDate = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
 
   overlay.classList.add('open');
   setTimeout(() => {
@@ -815,7 +815,7 @@ function openDebtModal(dir) {
   if (label) label.textContent = currentDebtDir === 'in' ? 'Кто вам должен' : 'Кому вы должны';
 
   const dateInput = document.getElementById('debt-date');
-  if (dateInput) dateInput.valueAsDate = new Date();
+  if (dateInput) dateInput.valueAsDate = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
 
   overlay.classList.add('open');
   setTimeout(() => {
