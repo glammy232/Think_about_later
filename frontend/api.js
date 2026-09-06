@@ -599,8 +599,8 @@
     renderParticipants();
     split.querySelector('select').addEventListener('change', renderParticipants);
     const updateIncomeFields = () => {
+      if (whoField) whoField.hidden = true;
       const income = document.querySelector('#modal-overlay .type-toggle button.active')?.dataset.type === 'income';
-      if (whoField) whoField.hidden = income;
       split.hidden = income;
     };
     document.querySelectorAll('.type-toggle button[data-type], .action-btn.income,[data-open-modal="income"]').forEach((button) => button.addEventListener('click', () => setTimeout(updateIncomeFields)));
@@ -619,7 +619,7 @@
     const amount = Number(document.getElementById('modal-amount')?.value);
     const categorySelect = document.getElementById('modal-category');
     const category = categorySelect?.value === '__custom' ? document.getElementById('api-custom-category')?.value.trim() : categorySelect?.value;
-    const payer = document.getElementById('modal-who')?.value || USER_ID;
+    const payer = USER_ID;
     const type = document.querySelector('#modal-overlay .type-toggle button.active')?.dataset.type || 'expense';
     const splitType = document.getElementById('api-split-type')?.value || 'equal';
     const selected = [...document.querySelectorAll('#api-participants input[type="checkbox"]:checked')].map((input) => input.dataset.member);
