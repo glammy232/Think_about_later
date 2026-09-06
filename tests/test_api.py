@@ -20,6 +20,14 @@ def test_health_and_docs_contract():
     assert response.json()["status"] == "ok"
 
 
+def test_frontend_is_served_with_backend_integration():
+    response = client.get("/demo")
+    assert response.status_code == 200
+    assert 'src="api.js?' in response.text
+    assert "DeepSeek" in response.text
+    assert client.get("/app/api.js").status_code == 200
+
+
 def test_dashboard_contains_frontend_blocks():
     response = client.get(
         "/api/groups/group-1/dashboard", headers={"X-User-Id": "user-1"}

@@ -13,6 +13,7 @@ uvicorn app.main:app --reload
 
 Открыть:
 
+- Интерфейс: http://localhost:8000/demo
 - Swagger UI: http://localhost:8000/docs
 - OpenAPI JSON: http://localhost:8000/openapi.json
 - Проверка сервера: http://localhost:8000/api/health
@@ -51,6 +52,8 @@ docker compose up --build
 Полный контракт и примеры запросов доступны в Swagger.
 
 ## Подключение frontend
+
+Готовый статический frontend находится в папке `frontend` и автоматически доступен по адресу `http://localhost:8000/demo`. Он использует тот же FastAPI-сервер, поэтому отдельный frontend-процесс для демо не нужен.
 
 Базовый URL в разработке:
 

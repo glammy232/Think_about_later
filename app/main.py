@@ -1,7 +1,10 @@
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from openai import APIError
 
 from app.ai_service import DeepSeekAssistant
@@ -370,3 +373,13 @@ def update_settings(user_id: str, data: SettingsUpdate):
     current.update(data.model_dump(exclude={"name", "avatar_url"}, exclude_none=True))
     storage.settings[user_id] = current
     return {"name": user.name, "avatar_url": user.avatar_url, **current}
+
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/app", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+
+
+@app.get("/demo", include_in_schema=False)
+def open_demo():
+    return RedirectResponse(url="/app/index.html")
