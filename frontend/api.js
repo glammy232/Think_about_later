@@ -7,6 +7,34 @@
     location.replace('onboarding.html');
     return;
   }
+  // Remove template/demo content synchronously, before the first paint. Every
+  // visible value below is rendered from the current API response instead.
+  const clearDemoContent = () => {
+    document.querySelector('#tx-list')?.replaceChildren();
+    document.querySelector('#tx-table-body')?.replaceChildren();
+    document.querySelector('#debt-list')?.replaceChildren();
+    document.querySelectorAll('.stats .stat-value').forEach((item) => { item.textContent = '0 ₽'; });
+    document.querySelectorAll('.stats .stat-sub').forEach((item) => {
+      const icon = item.querySelector('svg, span');
+      item.textContent = 'нет данных';
+      if (icon) item.appendChild(icon);
+    });
+    if (location.pathname.endsWith('members.html')) {
+      document.querySelector('.content .grid-2')?.replaceChildren();
+    }
+    if (location.pathname.endsWith('analytics.html') || location.pathname.endsWith('index.html')) {
+      document.querySelector('.trend-total')?.replaceChildren(document.createTextNode('0 ₽'));
+      document.querySelectorAll('.panel').forEach((panel) => {
+        if (panel.querySelector('.panel-head h3')?.textContent.includes('Динамика расходов')) {
+          panel.querySelector('svg')?.replaceChildren();
+        }
+      });
+      document.querySelectorAll('.api-month-labels').forEach((item) => item.replaceChildren());
+      document.querySelectorAll('.legend-row').forEach((item) => item.remove());
+    }
+    document.querySelectorAll('.ai-chat > .ai-msg, .ai-chat > div > .ai-msg').forEach((item) => item.remove());
+  };
+  clearDemoContent();
   const state = { members: [], group: null, operations: [], analyticsMonths: 6 };
   const monthGenitive = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
   const monthPrepositional = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
