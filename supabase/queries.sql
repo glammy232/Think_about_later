@@ -254,3 +254,55 @@ ORDER BY
     creditor_name;
 
 EXECUTE group_debts(1);
+
+-- =========================================
+-- Сумма расходов по категориям
+-- Параметр: group_id
+-- =========================================
+
+-- Перед повторным запуском:
+-- DEALLOCATE expenses_by_category;
+
+PREPARE expenses_by_category (int) AS
+
+SELECT
+    c.name AS category_name,
+    SUM(e.amount) AS total_amount
+
+FROM expenses e
+
+JOIN categories c
+    ON c.id = e.category_id
+
+WHERE e.group_id = $1
+
+GROUP BY c.id, c.name
+
+ORDER BY total_amount DESC;
+
+EXECUTE expenses_by_category(1);
+
+-- =========================================
+-- Сумма расходов по месяцам
+-- Параметр: group_id
+-- Для графика
+-- =========================================
+
+-- Перед повторным запуском:
+-- DEALLOCATE expenses_by_month;
+
+PREPARE expenses_by_month (int) AS
+
+SELECT
+    DATE_TRUNC('month', e.expense_date) AS month,
+    SUM(e.amount) AS total_amount
+
+FROM expenses e
+
+WHERE e.group_id = $1
+
+GROUP BY DATE_TRUNC('month', e.expense_date)
+
+ORDER BY month;
+
+EXECUTE expenses_by_month(1);
