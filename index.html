@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Круг — Сканер чеков</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #24343d;
+    background: #ffffff;
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    width: 245px;
+    min-height: 100vh;
+    background: #f8fcfa;
+    border-right: 1px solid #edf3ef;
+    padding: 28px 16px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    margin-bottom: 42px;
+}
+
+.logo-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 7px solid #21a653;
+    border-right-color: #9ad9ae;
+    transform: rotate(-35deg);
+}
+
+.logo-text {
+    font-size: 25px;
+    font-weight: 700;
+    color: #263943;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 14px;
+    border-radius: 13px;
+    color: #52636c;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background: #edf8f1;
+}
+
+.menu-item.active {
+    background: #e8f6ed;
+    color: #159447;
+    font-weight: 700;
+}
+
+.menu-icon {
+    width: 24px;
+    text-align: center;
+    font-size: 19px;
+}
+
+.menu-arrow {
+    margin-left: auto;
+}
+
+.ai-card {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 28px;
+    padding: 20px 18px;
+    border-radius: 16px;
+    background: #edf8f1;
+}
+
+.ai-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #159447;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.ai-icon {
+    font-size: 23px;
+}
+
+.ai-card p {
+    color: #64757c;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 16px 0;
+}
+
+.ai-button {
+    width: 100%;
+    border: none;
+    background: #20a653;
+    color: white;
+    border-radius: 9px;
+    padding: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main {
+    margin-left: 245px;
+    width: calc(100% - 245px);
+    min-height: 100vh;
+    padding: 32px 42px 60px;
+}
+
+.topbar {
+    height: 54px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+.top-icon {
+    font-size: 22px;
+    color: #344953;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        #d8eee0,
+        #79bd91
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+/* =========================
+   TITLE
+========================= */
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin: 10px 0 30px;
+}
+
+.title-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 20px;
+    background: #eaf8ef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #159447;
+    font-size: 30px;
+}
+
+.page-title h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+    color: #20343d;
+}
+
+.page-title p {
+    margin: 0;
+    color: #71838b;
+    font-size: 15px;
+}
+
+/* =========================
+   GRID
+========================= */
+
+.content-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(500px, 1.5fr)
+        minmax(380px, 0.9fr);
+
+    gap: 20px;
+}
+
+/* =========================
+   CARDS
+========================= */
+
+.card {
+    background: white;
+    border: 1px solid #e7efea;
+    border-radius: 17px;
+    box-shadow: 0 5px 20px rgba(30, 80, 50, 0.04);
+}
+
+/* =========================
+   METHODS
+========================= */
+
+.methods {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.method-card {
+    padding: 25px;
+    min-height: 220px;
+}
+
+.method-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: #eaf8ef;
+    color: #159447;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    margin-bottom: 17px;
+}
+
+.method-card h2 {
+    font-size: 17px;
+    margin: 0 0 10px;
+}
+
+.method-card p {
+    color: #75868e;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0 0 18px;
+}
+
+.green-button {
+    width: 100%;
+    border: none;
+    background: #20a653;
+    color: white;
+    border-radius: 10px;
+    padding: 13px 15px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.green-button:hover {
+    background: #188e47;
+}
+
+.outline-button {
+    width: 100%;
+    border: 1px solid #20a653;
+    background: white;
+    color: #159447;
+    border-radius: 10px;
+    padding: 13px 15px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.outline-button:hover {
+    background: #edf8f1;
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* =========================
+   PHOTO
+========================= */
+
+.photo-card {
+    margin-top: 20px;
+    padding: 20px;
+}
+
+.photo-card h2 {
+    margin: 0 0 18px;
+    font-size: 17px;
+}
+
+.photo-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    min-height: 390px;
+}
+
+.photo-preview {
+    position: relative;
+    min-height: 390px;
+    border-radius: 13px;
+    overflow: hidden;
+    background: #f5f7f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-preview img {
+    width: 100%;
+    height: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    display: none;
+}
+
+.empty-photo {
+    text-align: center;
+    padding: 30px;
+    color: #819198;
+}
+
+.empty-photo-icon {
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+.empty-photo p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ready-card {
+    background: #f3fbf6;
+    border-radius: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+}
+
+.ready-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #e4f6ea;
+    color: #159447;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+    margin-bottom: 18px;
+}
+
+.ready-card h3 {
+    margin: 0 0 13px;
+    color: #159447;
+}
+
+.ready-card p {
+    color: #70828a;
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 230px;
+    margin: 0 0 25px;
+}
+
+/* =========================
+   CAMERA
+========================= */
+
+.camera-container {
+    margin-top: 20px;
+    display: none;
+    padding: 20px;
+}
+
+.camera-container.active {
+    display: block;
+}
+
+.camera-container h3 {
+    margin-top: 0;
+}
+
+#camera {
+    width: 100%;
+    max-height: 450px;
+    object-fit: cover;
+    border-radius: 13px;
+    background: #111;
+}
+
+.camera-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.camera-buttons button {
+    flex: 1;
+}
+
+/* =========================
+   RESULT
+========================= */
+
+.result-card {
+    padding: 22px;
+    height: fit-content;
+    position: sticky;
+    top: 25px;
+}
+
+.result-title {
+    margin: 0 0 22px;
+    font-size: 18px;
+}
+
+/* =========================
+   SUCCESS
+========================= */
+
+.success-box {
+    background: #f0faf4;
+    border: 1px solid #dcefe3;
+    border-radius: 13px;
+    padding: 17px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.success-icon {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    border-radius: 50%;
+    background: #20a653;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.success-box strong {
+    color: #159447;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.success-box span {
+    color: #75868e;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* =========================
+   EDITABLE FIELDS
+========================= */
+
+.field {
+    margin-bottom: 18px;
+}
+
+.field label {
+    display: block;
+    color: #71838b;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    border: 1px solid #dce7e1;
+    border-radius: 10px;
+    padding: 12px 13px;
+    font-size: 14px;
+    color: #24343d;
+    background: white;
+    outline: none;
+}
+
+.field input:focus,
+.field select:focus {
+    border-color: #20a653;
+    box-shadow: 0 0 0 3px #eaf8ef;
+}
+
+/* =========================
+   PRODUCTS
+========================= */
+
+.products-title {
+    font-size: 17px;
+    margin: 25px 0 13px;
+}
+
+.items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.item {
+    border: 1px solid #e4ece7;
+    border-radius: 12px;
+    padding: 14px;
+    background: #ffffff;
+}
+
+.item-row {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 10px;
+}
+
+.item label {
+    display: block;
+    color: #71838b;
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.item input,
+.item select {
+    width: 100%;
+    border: 1px solid #dce7e1;
+    border-radius: 8px;
+    padding: 9px;
+    font-size: 13px;
+    background: white;
+}
+
+.item input:focus,
+.item select:focus {
+    border-color: #20a653;
+    outline: none;
+}
+
+.item-category-row {
+    margin-top: 10px;
+}
+
+/* =========================
+   SAVE
+========================= */
+
+.save-section {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e8efeb;
+}
+
+.save-hint {
+    font-size: 12px;
+    color: #75868e;
+    line-height: 1.5;
+    margin: 0 0 12px;
+}
+
+.save-button {
+    width: 100%;
+    border: none;
+    background: #20a653;
+    color: white;
+    border-radius: 11px;
+    padding: 15px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.save-button:hover {
+    background: #188e47;
+}
+
+.save-button.saved {
+    background: #159447;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status {
+    margin-top: 15px;
+    color: #71838b;
+    font-size: 13px;
+    min-height: 20px;
+}
+
+/* =========================
+   HIDDEN
+========================= */
+
+.hidden {
+    display: none !important;
+}
+
+#photoCanvas {
+    display: none;
+}
+
+#receiptInput {
+    display: none;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 1050px) {
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .result-card {
+        position: static;
+    }
+}
+
+@media (max-width: 800px) {
+
+    .sidebar {
+        width: 75px;
+        padding: 20px 10px;
+    }
+
+    .logo {
+        padding: 0;
+        justify-content: center;
+    }
+
+    .logo-text,
+    .menu-item span:not(.menu-icon),
+    .menu-arrow,
+    .ai-card {
+        display: none;
+    }
+
+    .menu-item {
+        justify-content: center;
+        padding: 14px 5px;
+    }
+
+    .main {
+        margin-left: 75px;
+        width: calc(100% - 75px);
+        padding: 20px;
+    }
+
+    .methods,
+    .photo-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 550px) {
+
+    .main {
+        padding: 15px;
+    }
+
+    .page-title h1 {
+        font-size: 24px;
+    }
+
+    .item-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<!-- =========================
+     SIDEBAR
+========================= -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-circle"></div>
+
+        <div class="logo-text">
+            Круг
+        </div>
+
+    </div>
+
+
+    <nav class="menu">
+
+        <div class="menu-item">
+            <span class="menu-icon">⌂</span>
+            <span>Главная</span>
+        </div>
+
+        <div class="menu-item active">
+            <span class="menu-icon">🧾</span>
+            <span>Сканер чеков</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">⇆</span>
+            <span>Финансы</span>
+            <span class="menu-arrow">⌃</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">⇄</span>
+            <span>Операции</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">♡</span>
+            <span>Балансы</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">▥</span>
+            <span>Аналитика</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">▤</span>
+            <span>Задолженности</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">♧</span>
+            <span>Участники</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">✧</span>
+            <span>AI-помощник</span>
+        </div>
+
+        <div class="menu-item">
+            <span class="menu-icon">⚙</span>
+            <span>Настройки</span>
+        </div>
+
+    </nav>
+
+
+    <div class="ai-card">
+
+        <div class="ai-title">
+
+            <span class="ai-icon">✧</span>
+
+            <span>
+                AI-помощник<br>
+                от GigaChat
+            </span>
+
+        </div>
+
+        <p>
+            Анализирует расходы,
+            подсказывает, как
+            сэкономить и отвечает
+            на ваши вопросы
+        </p>
+
+        <button class="ai-button">
+            Задать вопрос
+        </button>
+
+    </div>
+
+</aside>
+
+
+
+<!-- =========================
+     MAIN
+========================= -->
+
+<main class="main">
+
+
+    <div class="topbar">
+
+        <span class="top-icon">♧</span>
+
+        <span class="top-icon">▢</span>
+
+        <div class="profile">
+
+            <div class="avatar">
+                👤
+            </div>
+
+            <span>Алексей</span>
+
+            <span>⌄</span>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="page-title">
+
+        <div class="title-icon">
+            🧾
+        </div>
+
+        <div>
+
+            <h1>
+                Сканер чеков
+            </h1>
+
+            <p>
+                Загрузите фото чека или сделайте снимок камерой.
+                Проверьте данные перед сохранением расхода.
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="content-grid">
+
+
+        <!-- =========================
+             LEFT
+        ========================= -->
+
+        <section>
+
+
+            <div class="methods">
+
+
+                <!-- ЗАГРУЗКА -->
+
+                <div class="card method-card">
+
+                    <div class="method-icon">
+                        ↑
+                    </div>
+
+                    <h2>
+                        Загрузить фото чека
+                    </h2>
+
+                    <p>
+                        Выберите изображение
+                        чека с компьютера.
+                    </p>
+
+                    <button
+                        class="green-button"
+                        id="uploadButton"
+                    >
+                        📁 Выбрать файл
+                    </button>
+
+                    <input
+                        type="file"
+                        id="receiptInput"
+                        accept="image/*"
+                    >
+
+                </div>
+
+
+                <!-- КАМЕРА -->
+
+                <div class="card method-card">
+
+                    <div class="method-icon">
+                        📷
+                    </div>
+
+                    <h2>
+                        Сделать фото камерой
+                    </h2>
+
+                    <p>
+                        Сделайте фотографию
+                        чека прямо сейчас.
+                    </p>
+
+                    <button
+                        class="outline-button"
+                        id="cameraButton"
+                    >
+                        📷 Открыть камеру
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =========================
+                 CAMERA
+            ========================= -->
+
+            <div
+                id="cameraContainer"
+                class="card camera-container"
+            >
+
+                <h3>
+                    📷 Камера
+                </h3>
+
+                <video
+                    id="camera"
+                    autoplay
+                    playsinline
+                ></video>
+
+                <div class="camera-buttons">
+
+                    <button
+                        class="green-button"
+                        id="takePhotoButton"
+                    >
+                        📸 Сделать фото
+                    </button>
+
+                    <button
+                        class="outline-button"
+                        id="closeCameraButton"
+                    >
+                        Закрыть
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <canvas
+                id="photoCanvas"
+            ></canvas>
+
+
+
+            <!-- =========================
+                 PHOTO
+            ========================= -->
+
+            <div class="card photo-card">
+
+                <h2>
+                    Фото чека
+                </h2>
+
+                <div class="photo-layout">
+
+
+                    <div class="photo-preview">
+
+                        <div
+                            id="emptyPhoto"
+                            class="empty-photo"
+                        >
+
+                            <div class="empty-photo-icon">
+                                🧾
+                            </div>
+
+                            <p>
+                                Здесь появится<br>
+                                фотография вашего чека
+                            </p>
+
+                        </div>
+
+
+                        <img
+                            id="receiptPreview"
+                            alt="Фото чека"
+                        >
+
+                    </div>
+
+
+                    <div class="ready-card">
+
+                        <div class="ready-icon">
+                            ✧
+                        </div>
+
+                        <h3>
+                            Готово к распознаванию
+                        </h3>
+
+                        <p id="readyText">
+                            Загрузите фотографию
+                            чека или сделайте снимок
+                            камерой.
+                        </p>
+
+                        <button
+                            id="recognizeButton"
+                            class="green-button hidden"
+                        >
+                            🤖 Распознать чек
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="status"
+                    class="status"
+                ></div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =========================
+             RIGHT — RESULT
+        ========================= -->
+
+        <section
+            id="result"
+            class="card result-card"
+        >
+
+
+            <h2 class="result-title">
+                Данные расхода
+            </h2>
+
+
+            <div class="success-box">
+
+                <div class="success-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong id="resultTitle">
+                        Ожидает распознавания
+                    </strong>
+
+                    <span id="resultDescription">
+                        После распознавания вы сможете
+                        проверить и изменить данные.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =========================
+                 КТО ПОТРАТИЛ
+            ========================= -->
+
+            <div class="field">
+
+                <label>
+                    👤 Кто потратил?
+                </label>
+
+                <select id="payer">
+
+                    <option value="">
+                        Выберите участника
+                    </option>
+
+                    <option value="Алексей">
+                        Алексей
+                    </option>
+
+                    <option value="Мария">
+                        Мария
+                    </option>
+
+                    <option value="Иван">
+                        Иван
+                    </option>
+
+                    <option value="Павел">
+                        Павел
+                    </option>
+
+                    <option value="Вы">
+                        Вы
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- =========================
+                 DATE
+            ========================= -->
+
+            <div class="field">
+
+                <label>
+                    📅 Дата покупки
+                </label>
+
+                <input
+                    type="text"
+                    id="date"
+                    placeholder="Например: 14.02.2026"
+                >
+
+            </div>
+
+
+
+            <!-- =========================
+                 TOTAL
+            ========================= -->
+
+            <div class="field">
+
+                <label>
+                    💰 Итоговая сумма
+                </label>
+
+                <input
+                    type="text"
+                    id="total"
+                    placeholder="Например: 1250.00"
+                >
+
+            </div>
+
+
+
+            <!-- =========================
+                 ITEMS
+            ========================= -->
+
+            <h3 class="products-title">
+                🛒 Товары
+            </h3>
+
+
+            <div
+                id="items"
+                class="items"
+            >
+
+                <div class="item">
+
+                    <div style="
+                        color:#71838b;
+                        font-size:13px;
+                        text-align:center;
+                        padding:15px;
+                    ">
+                        После распознавания
+                        здесь появятся товары
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =========================
+                 SAVE
+            ========================= -->
+
+            <div class="save-section">
+
+                <p class="save-hint">
+                    Проверьте данные перед сохранением.
+                    Сейчас кнопка только демонстрационная —
+                    подключение к базе данных сделаем следующим этапом.
+                </p>
+
+                <button
+                    id="saveButton"
+                    class="save-button"
+                >
+                    💾 Сохранить расход
+                </button>
+
+            </div>
+
+
+        </section>
+
+
+    </div>
+
+
+</main>
+
+</div>
+
+
+
+<script>
+
+
+// ==========================================
+// ЭЛЕМЕНТЫ
+// ==========================================
+
+const uploadButton =
+    document.getElementById("uploadButton");
+
+const receiptInput =
+    document.getElementById("receiptInput");
+
+const receiptPreview =
+    document.getElementById("receiptPreview");
+
+const emptyPhoto =
+    document.getElementById("emptyPhoto");
+
+const recognizeButton =
+    document.getElementById("recognizeButton");
+
+const readyText =
+    document.getElementById("readyText");
+
+const status =
+    document.getElementById("status");
+
+const cameraButton =
+    document.getElementById("cameraButton");
+
+const cameraContainer =
+    document.getElementById("cameraContainer");
+
+const camera =
+    document.getElementById("camera");
+
+const takePhotoButton =
+    document.getElementById("takePhotoButton");
+
+const closeCameraButton =
+    document.getElementById("closeCameraButton");
+
+const photoCanvas =
+    document.getElementById("photoCanvas");
+
+const resultTitle =
+    document.getElementById("resultTitle");
+
+const resultDescription =
+    document.getElementById("resultDescription");
+
+const dateElement =
+    document.getElementById("date");
+
+const totalElement =
+    document.getElementById("total");
+
+const itemsElement =
+    document.getElementById("items");
+
+const payerElement =
+    document.getElementById("payer");
+
+const saveButton =
+    document.getElementById("saveButton");
+
+
+let selectedFile = null;
+
+let cameraStream = null;
+
+
+// ==========================================
+// КАТЕГОРИИ
+// ==========================================
+
+const categories = [
+
+    "продукты",
+    "кафе и рестораны",
+    "транспорт",
+    "здоровье",
+    "красота",
+    "одежда",
+    "электроника",
+    "дом",
+    "развлечения",
+    "образование",
+    "спорт",
+    "путешествия",
+    "услуги",
+    "другое"
+
+];
+
+
+// ==========================================
+// ВЫБРАТЬ ФАЙЛ
+// ==========================================
+
+uploadButton.onclick = () => {
+
+    receiptInput.click();
+
+};
+
+
+// ==========================================
+// ФАЙЛ ВЫБРАН
+// ==========================================
+
+receiptInput.addEventListener(
+    "change",
+    () => {
+
+        const file =
+            receiptInput.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        showPhoto(file);
+
+    }
+);
+
+
+// ==========================================
+// ПОКАЗАТЬ ФОТО
+// ==========================================
+
+function showPhoto(file) {
+
+    selectedFile = file;
+
+    const imageUrl =
+        URL.createObjectURL(file);
+
+    receiptPreview.src =
+        imageUrl;
+
+    receiptPreview.style.display =
+        "block";
+
+    emptyPhoto.style.display =
+        "none";
+
+    recognizeButton.classList.remove(
+        "hidden"
+    );
+
+    readyText.textContent =
+        "Фотография готова. Проверьте, что весь текст хорошо виден.";
+
+    status.textContent =
+        "Фото готово к распознаванию.";
+
+    resultTitle.textContent =
+        "Готово к распознаванию";
+
+    resultDescription.textContent =
+        "После распознавания данные можно будет изменить.";
+
+}
+
+
+// ==========================================
+// КАМЕРА
+// ==========================================
+
+cameraButton.onclick =
+    async () => {
+
+        try {
+
+            cameraStream =
+                await navigator.mediaDevices.getUserMedia({
+
+                    video: {
+
+                        facingMode:
+                            "environment",
+
+                        width: {
+                            ideal: 1920
+                        },
+
+                        height: {
+                            ideal: 1080
+                        }
+
+                    },
+
+                    audio: false
+
+                });
+
+
+            camera.srcObject =
+                cameraStream;
+
+            cameraContainer.classList.add(
+                "active"
+            );
+
+            cameraButton.disabled =
+                true;
+
+            status.textContent =
+                "Камера открыта. Наведите её на чек.";
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Не удалось открыть камеру. Разрешите доступ к камере."
+            );
+
+        }
+
+    };
+
+
+// ==========================================
+// СДЕЛАТЬ ФОТО
+// ==========================================
+
+takePhotoButton.onclick =
+    () => {
+
+        if (!cameraStream) {
+            return;
+        }
+
+        const width =
+            camera.videoWidth;
+
+        const height =
+            camera.videoHeight;
+
+        if (!width || !height) {
+
+            alert(
+                "Камера ещё не готова. Подождите немного."
+            );
+
+            return;
+
+        }
+
+        photoCanvas.width =
+            width;
+
+        photoCanvas.height =
+            height;
+
+        const context =
+            photoCanvas.getContext("2d");
+
+        context.drawImage(
+            camera,
+            0,
+            0,
+            width,
+            height
+        );
+
+        photoCanvas.toBlob(
+
+            (blob) => {
+
+                if (!blob) {
+
+                    alert(
+                        "Не удалось сделать фотографию."
+                    );
+
+                    return;
+
+                }
+
+                const file =
+                    new File(
+                        [blob],
+                        "receipt-camera.jpg",
+                        {
+                            type: "image/jpeg"
+                        }
+                    );
+
+                showPhoto(file);
+
+                closeCamera();
+
+            },
+
+            "image/jpeg",
+
+            0.95
+
+        );
+
+    };
+
+
+// ==========================================
+// ЗАКРЫТЬ КАМЕРУ
+// ==========================================
+
+function closeCamera() {
+
+    if (cameraStream) {
+
+        cameraStream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+        cameraStream = null;
+
+    }
+
+    camera.srcObject = null;
+
+    cameraContainer.classList.remove(
+        "active"
+    );
+
+    cameraButton.disabled =
+        false;
+
+}
+
+
+closeCameraButton.onclick =
+    () => {
+
+        closeCamera();
+
+        status.textContent =
+            "Камера закрыта.";
+
+    };
+
+
+// ==========================================
+// РАСПОЗНАВАНИЕ
+// ==========================================
+
+recognizeButton.onclick =
+    async () => {
+
+        if (!selectedFile) {
+
+            alert(
+                "Сначала загрузите фотографию или сделайте снимок."
+            );
+
+            return;
+
+        }
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "receipt",
+            selectedFile
+        );
+
+        recognizeButton.disabled =
+            true;
+
+        recognizeButton.textContent =
+            "🤖 Распознаём...";
+
+        status.textContent =
+            "GigaChat анализирует фотографию чека...";
+
+        resultTitle.textContent =
+            "Распознаём чек";
+
+        resultDescription.textContent =
+            "Пожалуйста, подождите несколько секунд.";
+
+        try {
+
+            const response =
+                await fetch(
+                    "http://localhost:3000/upload-receipt",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Ошибка сервера: " +
+                    response.status
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.message ||
+                    "Не удалось распознать чек"
+                );
+
+            }
+
+
+            // ==================================
+            // ПОЛУЧАЕМ JSON
+            // ==================================
+
+            let receipt;
+
+            try {
+
+                receipt =
+                    JSON.parse(data.result);
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Ответ GigaChat:",
+                    data.result
+                );
+
+                throw new Error(
+                    "GigaChat вернул некорректный JSON."
+                );
+
+            }
+
+
+            // ==================================
+            // УСПЕХ
+            // ==================================
+
+            resultTitle.textContent =
+                "Чек распознан!";
+
+            resultDescription.textContent =
+                "Проверьте данные и при необходимости исправьте их.";
+
+            status.textContent =
+                "✅ Распознавание завершено.";
+
+
+            // ==================================
+            // ДАТА
+            // ==================================
+
+            dateElement.value =
+                receipt.date || "";
+
+
+            // ==================================
+            // СУММА
+            // ==================================
+
+            totalElement.value =
+                receipt.total || "";
+
+
+            // ==================================
+            // ТОВАРЫ
+            // ==================================
+
+            renderItems(
+                receipt.items || []
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            resultTitle.textContent =
+                "Ошибка распознавания";
+
+            resultDescription.textContent =
+                "Не удалось обработать фотографию.";
+
+            status.textContent =
+                "❌ " + error.message;
+
+            alert(
+                "Не удалось распознать чек.\n\n" +
+                error.message
+            );
+
+        }
+
+        finally {
+
+            recognizeButton.disabled =
+                false;
+
+            recognizeButton.textContent =
+                "🤖 Распознать чек";
+
+        }
+
+    };
+
+
+// ==========================================
+// ОТОБРАЖЕНИЕ ТОВАРОВ
+// ==========================================
+
+function renderItems(items) {
+
+    itemsElement.innerHTML = "";
+
+
+    if (!items.length) {
+
+        itemsElement.innerHTML = `
+
+            <div class="item">
+
+                <div style="
+                    color:#71838b;
+                    font-size:13px;
+                    text-align:center;
+                    padding:15px;
+                ">
+                    Товары не найдены
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    items.forEach(
+        (item, index) => {
+
+            const itemElement =
+                document.createElement("div");
+
+            itemElement.className =
+                "item";
+
+
+            itemElement.innerHTML = `
+
+                <div class="item-row">
+
+
+                    <div>
+
+                        <label>
+                            Название товара
+                        </label>
+
+                        <input
+                            type="text"
+                            class="item-name"
+                            data-index="${index}"
+                            value="${escapeHtml(item.name || "")}"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label>
+                            Цена
+                        </label>
+
+                        <input
+                            type="text"
+                            class="item-price"
+                            data-index="${index}"
+                            value="${escapeHtml(item.price || "")}"
+                        >
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="item-category-row">
+
+                    <label>
+                        Категория
+                    </label>
+
+                    <select
+                        class="item-category"
+                        data-index="${index}"
+                    >
+
+                        ${createCategoryOptions(
+                            item.category
+                        )}
+
+                    </select>
+
+                </div>
+
+            `;
+
+
+            itemsElement.appendChild(
+                itemElement
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// КАТЕГОРИИ SELECT
+// ==========================================
+
+function createCategoryOptions(
+    selectedCategory
+) {
+
+    return categories
+        .map(
+            category => {
+
+                const selected =
+                    category === selectedCategory
+                        ? "selected"
+                        : "";
+
+                return `
+                    <option
+                        value="${category}"
+                        ${selected}
+                    >
+                        ${category}
+                    </option>
+                `;
+
+            }
+        )
+        .join("");
+
+}
+
+
+// ==========================================
+// БЕЗОПАСНЫЙ ТЕКСТ
+// ==========================================
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+// ==========================================
+// СОХРАНИТЬ РАСХОД
+// ==========================================
+
+saveButton.onclick =
+    () => {
+
+        const payer =
+            payerElement.value;
+
+        const date =
+            dateElement.value;
+
+        const total =
+            totalElement.value;
+
+
+        if (!payer) {
+
+            alert(
+                "Выберите, кто потратил деньги."
+            );
+
+            payerElement.focus();
+
+            return;
+
+        }
+
+
+        if (!date) {
+
+            alert(
+                "Укажите дату покупки."
+            );
+
+            dateElement.focus();
+
+            return;
+
+        }
+
+
+        if (!total) {
+
+            alert(
+                "Укажите сумму."
+            );
+
+            totalElement.focus();
+
+            return;
+
+        }
+
+
+        const productNames =
+            document.querySelectorAll(
+                ".item-name"
+            );
+
+        const productPrices =
+            document.querySelectorAll(
+                ".item-price"
+            );
+
+        const productCategories =
+            document.querySelectorAll(
+                ".item-category"
+            );
+
+
+        const items = [];
+
+
+        for (
+            let i = 0;
+            i < productNames.length;
+            i++
+        ) {
+
+            items.push({
+
+                name:
+                    productNames[i].value,
+
+                price:
+                    productPrices[i].value,
+
+                category:
+                    productCategories[i].value
+
+            });
+
+        }
+
+
+        // =================================
+        // ПОКА ТОЛЬКО СОБИРАЕМ ДАННЫЕ
+        // =================================
+
+        const expense = {
+
+            payer: payer,
+
+            date: date,
+
+            total: total,
+
+            items: items
+
+        };
+
+
+        console.log(
+            "Расход:",
+            expense
+        );
+
+
+        saveButton.textContent =
+            "✅ Расход подготовлен";
+
+
+        saveButton.classList.add(
+            "saved"
+        );
+
+
+        status.textContent =
+            "Расход готов к сохранению в базу данных.";
+
+
+        alert(
+            "Расход успешно подготовлен!\n\n" +
+            "Пока база данных не подключена, поэтому данные никуда не отправляются."
+        );
+
+    };
+
+
+</script>
+
+
+</body>
+
+</html>
