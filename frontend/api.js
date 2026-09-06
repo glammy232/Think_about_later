@@ -787,8 +787,8 @@
     try {
       bindFinanceNavigation();
       updateCurrentDates();
-      await loadContext();
-      await preloadAllData();
+      // Контекст и все разделы загружаются одновременно.
+      await Promise.all([loadContext(), preloadAllData()]);
       enhanceOperationForm();
       bindAnalyticsPeriods();
       await hydrateCurrentPage();
