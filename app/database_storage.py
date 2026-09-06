@@ -49,9 +49,6 @@ class PostgresStorage:
             open=True,
             kwargs={"row_factory": dict_row, "prepare_threshold": None},
         )
-        self.pool.wait(timeout=15)
-        with self._connection() as connection:
-            connection.execute("SELECT 1")
 
     def _connection(self):
         # Supabase transaction pooler reuses server connections between clients;
