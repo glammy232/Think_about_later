@@ -236,6 +236,15 @@ class AssistantRequest(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
     conversation_id: str | None = Field(default=None, max_length=80)
 
+    @field_validator("conversation_id", mode="before")
+    @classmethod
+    def normalize_empty_conversation_id(cls, value):
+        if value is None:
+            return None
+        if isinstance(value, str) and value.strip().casefold() in {"", "null", "none"}:
+            return None
+        return value
+
 
 class AssistantResponse(BaseModel):
     answer: str

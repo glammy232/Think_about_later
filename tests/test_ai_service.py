@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.ai_service import DeepSeekAssistant, assistant_state
+from app.models import AssistantRequest
 from app.storage import InMemoryStorage
 
 
@@ -128,3 +129,9 @@ def test_ai_analytics_uses_backend_data():
     result = service.execute_tool("group-1", "user-1", "get_balances", {})
     assert result["status"] == "ok"
     assert len(result["balances"]) == 5
+
+
+@pytest.mark.parametrize("value", [None, "", "null", "NULL", "none"])
+def test_empty_conversation_id_is_normalized(value):
+    request = AssistantRequest(message="Тест", conversation_id=value)
+    assert request.conversation_id is None
