@@ -113,6 +113,11 @@ class PostgresStorage:
             member_ids=[str(item["user_id"]) for item in members],
         )
 
+    def delete_group(self, group_id: str) -> bool:
+        with self._connection() as connection:
+            result = connection.execute("DELETE FROM groups WHERE id = %s", (_numeric_id(group_id),))
+            return result.rowcount > 0
+
     def create_group(self, data: GroupCreate) -> tuple[Group, User]:
         token = uuid4().hex
         with self._connection() as connection:

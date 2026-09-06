@@ -22,6 +22,7 @@ from app.models import (
 
 class Storage(Protocol):
     def get_group(self, group_id: str) -> Group | None: ...
+    def delete_group(self, group_id: str) -> bool: ...
     def create_group(self, data: GroupCreate) -> tuple[Group, User]: ...
     def list_users(self, group_id: str) -> list[User]: ...
     def add_member(self, group_id: str, data: MemberCreate) -> User: ...
@@ -119,6 +120,14 @@ class InMemoryStorage:
 
     def get_group(self, group_id: str) -> Group | None:
         return deepcopy(self.groups.get(group_id))
+
+    def delete_group(self, group_id: str) -> bool:
+        if group_id not in self.groups: return False
+        self.groups.pop(group_id, None)
+        self.group_members.pop(group_id, None)
+        self.operations = {key: item for key, item in self.operations.items() if item.group_id != group_id}
+        self.debts = {key: item for key, item in self.debts.items() if item.group_id != group_id}
+        return True
 
     def list_users(self, group_id: str) -> list[User]:
         group = self.groups.get(group_id)

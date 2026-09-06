@@ -148,11 +148,17 @@
       chip.dataset.profileBound = '1';
       const menu = document.createElement('div');
       menu.className = 'api-profile-menu';
-      menu.innerHTML = `<div><span class="api-profile-avatar">${escapeHtml(memberInitial(USER_ID))}</span><span><b>${escapeHtml(currentMember()?.name || 'Пользователь')}</b><small>Участник группы</small></span></div><button type="button">Выйти из профиля</button>`;
+      menu.innerHTML = `<div><span class="api-profile-avatar">${escapeHtml(memberInitial(USER_ID))}</span><span><b>${escapeHtml(currentMember()?.name || 'Пользователь')}</b><small>Участник группы</small></span></div><button type="button" class="api-delete-group">Удалить группу</button><button type="button" class="api-profile-logout">Выйти из профиля</button>`;
       chip.appendChild(menu);
       chip.addEventListener('click', (event) => {
         event.stopPropagation();
         menu.classList.toggle('open');
+      });
+      menu.querySelector('.api-delete-group')?.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        if (!confirm('Удалить группу и все её расходы, долги и участников? Это действие нельзя отменить.')) return;
+        try { await request(`/groups/${GROUP_ID}`, { method: 'DELETE' }); localStorage.removeItem('krug_group_id'); localStorage.removeItem('krug_user_id'); location.replace('onboarding.html'); }
+        catch (error) { notify(error.message, true); }
       });
       menu.querySelector('button').addEventListener('click', (event) => {
         event.stopPropagation();
