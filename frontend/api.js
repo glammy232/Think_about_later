@@ -10,9 +10,12 @@
   // Remove template/demo content synchronously, before the first paint. Every
   // visible value below is rendered from the current API response instead.
   const clearDemoContent = () => {
-    document.querySelector('#tx-list')?.replaceChildren();
-    document.querySelector('#tx-table-body')?.replaceChildren();
-    document.querySelector('#debt-list')?.replaceChildren();
+    const txList = document.querySelector('#tx-list');
+    txList?.replaceChildren(document.createTextNode('Нет операций'));
+    const txTable = document.querySelector('#tx-table-body');
+    txTable?.replaceChildren(Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="5">Нет операций</td>' }));
+    const debtList = document.querySelector('#debt-list');
+    debtList?.replaceChildren(document.createTextNode('Активных долгов нет'));
     document.querySelectorAll('.stats .stat-value').forEach((item) => { item.textContent = '0 ₽'; });
     document.querySelectorAll('.stats .stat-sub').forEach((item) => {
       const icon = item.querySelector('svg, span');
@@ -20,7 +23,7 @@
       if (icon) item.appendChild(icon);
     });
     if (location.pathname.endsWith('members.html')) {
-      document.querySelector('.content .grid-2')?.replaceChildren();
+      document.querySelector('.content .grid-2')?.replaceChildren(document.createTextNode('Участников пока нет'));
     }
     if (location.pathname.endsWith('analytics.html') || location.pathname.endsWith('index.html')) {
       document.querySelector('.trend-total')?.replaceChildren(document.createTextNode('0 ₽'));
@@ -252,9 +255,9 @@
     const operations = await request(`/groups/${GROUP_ID}/operations`);
     state.operations = operations;
     const tbody = document.getElementById('tx-table-body');
-    if (tbody) tbody.innerHTML = operations.map(operationTableRow).join('');
+    if (tbody) tbody.innerHTML = operations.map(operationTableRow).join('') || '<tr><td colspan="5">Нет операций</td></tr>';
     const list = document.getElementById('tx-list');
-    if (list) list.innerHTML = operations.slice(0, 5).map(operationRow).join('');
+    if (list) list.innerHTML = operations.slice(0, 5).map(operationRow).join('') || 'Нет операций';
     if (location.pathname.endsWith('finances.html')) {
       const expenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
       const incomes = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
@@ -323,7 +326,7 @@
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Балансы участников'));
     if (balancePanel) {
       balancePanel.querySelectorAll('.bal-row').forEach((row) => row.remove());
-      balancePanel.insertAdjacentHTML('beforeend', balanceRows(data.balances));
+      balancePanel.insertAdjacentHTML('beforeend', balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>');
     }
     if (location.pathname.endsWith('balances.html')) {
       const incoming = data.recommended_transfers.filter((item) => item.to_user_id === USER_ID);
@@ -488,7 +491,7 @@
     grid.innerHTML = state.members.map((member, index) => `<div class="member-card">
       <div class="member-avatar">${escapeHtml(memberInitial(member.id))}</div>
       <div class="member-info"><b>${escapeHtml(member.name)}</b><span>Участник группы</span></div>
-      <span class="member-role ${index ? 'guest' : ''}">${index ? 'Участник' : 'Админ'}</span></div>`).join('');
+      <span class="member-role ${index ? 'guest' : ''}">${index ? 'Участник' : 'Админ'}</span></div>`).join('') || '<p class="api-empty-state">Участников пока нет</p>';
     document.getElementById('invite-member-btn')?.addEventListener('click', openInviteDialog);
   }
 

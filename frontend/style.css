@@ -76,6 +76,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
   to{opacity:1; transform:translateY(0);}
 }
 .content{animation: fadeUp .32s var(--ease);}
+.api-empty-state{padding:16px 0;color:var(--text-muted);font-size:13px;}
 
 .ripple{
   position:absolute; border-radius:50%; background:currentColor; opacity:.25;
