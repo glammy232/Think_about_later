@@ -639,6 +639,7 @@
     if (!panel) return;
     const fullPageMessages = panel.firstElementChild?.querySelector('.ai-msg') ? panel.firstElementChild : null;
     let messages = fullPageMessages;
+    if (messages) messages.classList.add('api-ai-messages');
     if (!messages) {
       panel.querySelectorAll(':scope > .ai-msg').forEach((message) => message.remove());
       messages = document.createElement('div');
