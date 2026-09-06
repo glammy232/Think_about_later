@@ -3,7 +3,7 @@
   const API = '/api';
   const GROUP_ID = 'group-1';
   const USER_ID = localStorage.getItem('krug_user_id') || 'user-1';
-  const state = { members: [], group: null };
+  const state = { members: [], group: null, operations: [] };
 
   const escapeHtml = (value) => String(value ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -115,6 +115,7 @@
 
   async function hydrateOperations() {
     const operations = await request(`/groups/${GROUP_ID}/operations`);
+    state.operations = operations;
     const tbody = document.getElementById('tx-table-body');
     if (tbody) tbody.innerHTML = operations.map(operationTableRow).join('');
     const list = document.getElementById('tx-list');
@@ -130,6 +131,25 @@
     return operations;
   }
 
+  function bindOperationFilters() {
+    if (!location.pathname.endsWith('operations.html')) return;
+    const selects = document.querySelectorAll('.filters select');
+    const tbody = document.getElementById('tx-table-body');
+    if (selects.length < 3 || !tbody) return;
+    const categories = [...new Set(state.operations.map((item) => item.category))].sort();
+    const months = [...new Set(state.operations.map((item) => item.operation_date.slice(0, 7)))].sort().reverse();
+    selects[0].innerHTML = '<option value="">Все категории</option>' + categories.map((item) => `<option>${escapeHtml(item)}</option>`).join('');
+    selects[1].innerHTML = '<option value="">Все участники</option>' + state.members.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`).join('');
+    selects[2].innerHTML = '<option value="">Все месяцы</option>' + months.map((item) => `<option value="${item}">${item}</option>`).join('');
+    const apply = () => {
+      const filtered = state.operations.filter((item) => (!selects[0].value || item.category === selects[0].value)
+        && (!selects[1].value || item.payer_id === selects[1].value)
+        && (!selects[2].value || item.operation_date.startsWith(selects[2].value)));
+      tbody.innerHTML = filtered.map(operationTableRow).join('') || '<tr><td colspan="5">Операций не найдено</td></tr>';
+    };
+    selects.forEach((select) => select.addEventListener('change', apply));
+  }
+
   async function hydrateDashboard() {
     if (!location.pathname.endsWith('/index.html') && !location.pathname.endsWith('/app/')) return;
     const dashboard = await request(`/groups/${GROUP_ID}/dashboard`);
@@ -138,6 +158,9 @@
     if (cards[1]) cards[1].textContent = money(dashboard.summary.user_expenses);
     if (cards[2]) cards[2].textContent = `+${money(dashboard.summary.owed_to_user)}`;
     if (cards[3]) cards[3].textContent = `−${money(dashboard.summary.user_owes)}`;
+    const subs = document.querySelectorAll('.stats .stat-sub');
+    if (subs[2]) subs[2].firstChild.textContent = `${dashboard.summary.owed_to_user > 0 ? 'есть долги' : 'нет долгов'} `;
+    if (subs[3]) subs[3].firstChild.textContent = `${dashboard.summary.user_owes > 0 ? 'есть долги' : 'нет долгов'} `;
   }
 
   function balanceRows(items) {
@@ -169,6 +192,24 @@
       if (values[0]) values[0].textContent = `+${money(incomingTotal)}`;
       if (values[1]) values[1].textContent = `−${money(outgoingTotal)}`;
       if (values[2]) values[2].textContent = `${incomingTotal - outgoingTotal >= 0 ? '+' : '−'}${money(Math.abs(incomingTotal - outgoingTotal))}`;
+      const pagePanel = [...document.querySelectorAll('.content .panel')]
+        .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Балансы участников'));
+      let transfersPanel = document.getElementById('api-transfers');
+      if (!transfersPanel) {
+        transfersPanel = document.createElement('div');
+        transfersPanel.id = 'api-transfers'; transfersPanel.className = 'panel';
+        pagePanel?.insertAdjacentElement('afterend', transfersPanel);
+      }
+      transfersPanel.innerHTML = '<div class="panel-head"><h3>Рекомендованные переводы</h3></div>'
+        + (data.recommended_transfers.map((item) => `<div class="bal-row"><div class="bal-avatar">↗</div>
+          <div class="bal-name"><b>${escapeHtml(item.from_user_name)} → ${escapeHtml(item.to_user_name)}</b><span>Для сведения общего баланса</span></div>
+          <div class="bal-amount">${money(item.amount)}</div>${item.from_user_id === USER_ID ? `<button class="primary-btn api-pay" data-to="${escapeHtml(item.to_user_id)}" data-amount="${item.amount}">Отметить перевод</button>` : ''}</div>`).join('') || '<p>Все расчёты закрыты</p>');
+      transfersPanel.querySelectorAll('.api-pay').forEach((button) => button.addEventListener('click', async () => {
+        try {
+          await request(`/groups/${GROUP_ID}/payments`, { method: 'POST', body: JSON.stringify({ from_user_id: USER_ID, to_user_id: button.dataset.to, amount: Number(button.dataset.amount), comment: 'Отмечено во frontend' }) });
+          notify('Перевод учтён'); await Promise.all([hydrateBalances(), hydrateDashboard(), hydrateDebts()]);
+        } catch (error) { notify(error.message, true); }
+      }));
     }
     return data;
   }
@@ -356,6 +397,8 @@
     if (currencySelect) currencySelect.value = userSettings.currency === 'USD' ? 'Доллар США ($)' : userSettings.currency === 'EUR' ? 'Евро (€)' : 'Российский рубль (₽)';
     const notifications = [...panels].find((panel) => panel.querySelector('h3')?.textContent === 'Уведомления');
     notifications?.remove();
+    [...apartment.querySelectorAll('.field')].find((field) => field.querySelector('label')?.textContent.includes('Дата закрытия'))?.remove();
+    [...panels].find((panel) => panel.querySelector('h3')?.textContent === 'Участники и доступ')?.remove();
     const profileName = document.getElementById('api-user-name');
     const profileAvatar = document.getElementById('api-avatar-url');
     const applyProfileValues = () => {
@@ -406,6 +449,7 @@
       await loadContext();
       enhanceOperationForm();
       await Promise.all([hydrateOperations(), hydrateDashboard(), hydrateBalances(), hydrateAnalytics(), hydrateDebts()]);
+      bindOperationFilters();
       await hydrateMembers();
       await bindSettings();
       bindAiChat(); bindReceipt();
