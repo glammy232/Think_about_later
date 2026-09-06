@@ -725,6 +725,7 @@
     const sendMessage = async (text) => {
       if (!text.trim() || send.dataset.busy) return;
       messages.insertAdjacentHTML('beforeend', `<div class="ai-msg me">${escapeHtml(text)}</div>`);
+      panel.querySelector('.ai-suggest')?.remove();
       input.value = ''; send.dataset.busy = '1'; input.disabled = true;
       const waiting = document.createElement('div'); waiting.className = 'ai-msg ai-typing'; waiting.innerHTML = '<i></i><i></i><i></i>'; messages.appendChild(waiting);
       try {
