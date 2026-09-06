@@ -10,6 +10,10 @@
   // Remove template/demo content synchronously, before the first paint. Every
   // visible value below is rendered from the current API response instead.
   const clearDemoContent = () => {
+    // Не показываем зашитые в HTML демо-значения до ответа API.
+    document.querySelectorAll('.household .info b, .household .info span').forEach((el) => { el.textContent = ''; });
+    document.querySelectorAll('.user-chip').forEach((el) => { el.childNodes.forEach((n) => { if (n.nodeType === Node.TEXT_NODE) n.textContent = ''; }); });
+    document.querySelectorAll('.topbar-actions').forEach((el) => el.replaceChildren());
     const txList = document.querySelector('#tx-list');
     txList?.replaceChildren(document.createTextNode('Нет операций'));
     const txTable = document.querySelector('#tx-table-body');
