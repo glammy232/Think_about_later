@@ -160,7 +160,7 @@
         try { await request(`/groups/${GROUP_ID}`, { method: 'DELETE' }); localStorage.removeItem('krug_group_id'); localStorage.removeItem('krug_user_id'); location.replace('onboarding.html'); }
         catch (error) { notify(error.message, true); }
       });
-      menu.querySelector('button').addEventListener('click', (event) => {
+      menu.querySelector('.api-profile-logout').addEventListener('click', (event) => {
         event.stopPropagation();
         localStorage.removeItem('krug_group_id');
         localStorage.removeItem('krug_user_id');
