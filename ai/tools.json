@@ -1,0 +1,189 @@
+[
+  {
+    "name": "get_expense_summary",
+    "description": "Получить расходы и доходы группы за период. Все суммы рассчитывает backend.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"period": {"oneOf": [{"enum": ["current_month", "previous_month", "last_7_days", "last_30_days"]}, {"type": "object", "additionalProperties": false, "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}}, "required": ["start", "end"]}]}},
+      "required": ["period"]
+    }
+  },
+  {
+    "name": "get_category_expenses",
+    "description": "Получить расходы одной категории за период.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "period": {"oneOf": [{"enum": ["current_month", "previous_month", "last_7_days", "last_30_days"]}, {"type": "object", "additionalProperties": false, "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}}, "required": ["start", "end"]}]},
+        "category": {"type": "string", "minLength": 1}
+      },
+      "required": ["period", "category"]
+    }
+  },
+  {
+    "name": "get_top_categories",
+    "description": "Получить категории с наибольшими расходами.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "period": {"oneOf": [{"enum": ["current_month", "previous_month", "last_7_days", "last_30_days"]}, {"type": "object", "additionalProperties": false, "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}}, "required": ["start", "end"]}]},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 10, "default": 3}
+      },
+      "required": ["period"]
+    }
+  },
+  {
+    "name": "compare_periods",
+    "description": "Сравнить расходы двух периодов и изменения по категориям.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "period_1": {"oneOf": [{"enum": ["current_month", "previous_month", "last_7_days", "last_30_days"]}, {"type": "object", "additionalProperties": false, "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}}, "required": ["start", "end"]}]},
+        "period_2": {"oneOf": [{"enum": ["current_month", "previous_month", "last_7_days", "last_30_days"]}, {"type": "object", "additionalProperties": false, "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}}, "required": ["start", "end"]}]},
+        "category_limit": {"type": "integer", "minimum": 1, "maximum": 10, "default": 5}
+      },
+      "required": ["period_1", "period_2"]
+    }
+  },
+  {
+    "name": "get_budget_status",
+    "description": "Получить состояние бюджета. Если бюджет не установлен, backend вернёт null.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"period": {"oneOf": [{"enum": ["current_month", "previous_month", "last_7_days", "last_30_days"]}, {"type": "object", "additionalProperties": false, "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}}, "required": ["start", "end"]}]}},
+      "required": ["period"]
+    }
+  },
+  {
+    "name": "get_group_distribution",
+    "description": "Получить суммы и доли расходов, оплаченные участниками.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "period": {"oneOf": [{"enum": ["current_month", "previous_month", "last_7_days", "last_30_days"]}, {"type": "object", "additionalProperties": false, "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}}, "required": ["start", "end"]}]},
+        "category": {"type": "string", "minLength": 1}
+      },
+      "required": ["period"]
+    }
+  },
+  {
+    "name": "get_balances",
+    "description": "Получить точные балансы и рекомендованные переводы между участниками.",
+    "parameters": {"type": "object", "additionalProperties": false, "properties": {}}
+  },
+  {
+    "name": "get_forecast",
+    "description": "Получить backend-прогноз расходов до конца текущего месяца.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"period": {"const": "current_month"}},
+      "required": ["period"]
+    }
+  },
+  {
+    "name": "simulate_expense_change",
+    "description": "Рассчитать сценарий изменения будущих расходов категории.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "period": {"const": "current_month"},
+        "category": {"type": "string", "minLength": 1},
+        "change_percent": {"type": "number", "minimum": -100, "maximum": 500}
+      },
+      "required": ["period", "category", "change_percent"]
+    }
+  },
+  {
+    "name": "prepare_expense",
+    "description": "Проверить данные и подготовить черновик расхода. Ничего не записывает.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "amount": {"type": "number", "exclusiveMinimum": 0},
+        "category": {"type": "string", "minLength": 1, "maxLength": 60},
+        "payer_id": {"type": "string"},
+        "participant_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "split_type": {"enum": ["equal", "custom", "percentage"]},
+        "shares": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "user_id": {"type": "string"},
+              "amount": {"type": "number", "minimum": 0},
+              "percentage": {"type": "number", "minimum": 0, "maximum": 100}
+            },
+            "required": ["user_id"]
+          }
+        },
+        "operation_date": {"type": "string", "format": "date"},
+        "comment": {"type": "string", "maxLength": 500}
+      },
+      "required": ["title", "amount", "category", "payer_id", "participant_ids", "split_type"]
+    }
+  },
+  {
+    "name": "prepare_income",
+    "description": "Проверить данные и подготовить черновик дохода. Ничего не записывает.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "amount": {"type": "number", "exclusiveMinimum": 0},
+        "category": {"type": "string", "minLength": 1, "maxLength": 60},
+        "recipient_id": {"type": "string"},
+        "operation_date": {"type": "string", "format": "date"},
+        "comment": {"type": "string", "maxLength": 500}
+      },
+      "required": ["title", "amount", "category", "recipient_id"]
+    }
+  },
+  {
+    "name": "prepare_debt",
+    "description": "Проверить данные и подготовить черновик прямого долга. Ничего не записывает.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "debtor_id": {"type": "string"},
+        "creditor_id": {"type": "string"},
+        "amount": {"type": "number", "exclusiveMinimum": 0},
+        "description": {"type": "string", "minLength": 1, "maxLength": 200},
+        "due_date": {"type": "string", "format": "date"}
+      },
+      "required": ["debtor_id", "creditor_id", "amount", "description"]
+    }
+  },
+  {
+    "name": "confirm_action",
+    "description": "Подтвердить ранее созданный черновик после явного согласия пользователя.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"action_id": {"type": "string", "minLength": 1}},
+      "required": ["action_id"]
+    }
+  },
+  {
+    "name": "cancel_action",
+    "description": "Отменить ранее созданный черновик.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"action_id": {"type": "string", "minLength": 1}},
+      "required": ["action_id"]
+    }
+  }
+]

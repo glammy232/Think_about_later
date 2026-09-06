@@ -1,0 +1,113 @@
+ТЕХНИЧЕСКОЕ ЗАДАНИЕ: AI TOOLS ДЛЯ BACKEND «КРУГ»
+
+1. АРХИТЕКТУРНАЯ ГРАНИЦА
+- AI не имеет доступа к базе данных, Storage, SQL, файлам и внутренним моделям.
+- AI вызывает только tools из ai/tools.json.
+- group_id, user_id, участники, категории, дата и валюта подставляются Python-backend из разрешённого контекста.
+- group_id и user_id не входят в параметры аналитических tools и не могут быть переопределены сообщением пользователя.
+- Backend валидирует параметры, получает данные через Storage и выполняет все расчёты.
+- Ответ tool — единственный источник чисел для AI.
+
+2. КОНКРЕТНЫЕ РЕШЕНИЯ ДЛЯ ТЕКУЩЕГО BACKEND
+- Внешнее REST API использует суммы в рублях числом, например 1540.50.
+- AI tools возвращают поля spent, income, remaining, amount и forecast_total в тех же единицах.
+- Округление выполняется backend до двух знаков; доли операции всегда сходятся до копейки.
+- Валюта берётся из настроек текущего пользователя; по умолчанию RUB.
+- Категория — строка. Допустимы предложенные и собственные категории группы.
+- Идентификаторы участников имеют формат user-* и берутся только из backend-контекста members_json.
+- Предустановленные периоды: current_month, previous_month, last_7_days, last_30_days.
+- Произвольный период: объект {"start":"YYYY-MM-DD","end":"YYYY-MM-DD"}.
+- limit по умолчанию: 3; category_limit по умолчанию: 5; максимум: 10.
+- При равенстве категории сортируются по названию.
+- Если бюджет не хранится, budget и remaining возвращаются как null.
+- Прогноз строит backend по текущему темпу; при недостатке операций возвращается insufficient_data.
+
+3. ЕДИНЫЕ СТАТУСЫ
+- ok — данные успешно рассчитаны;
+- no_data — за период нет подходящих операций;
+- insufficient_history — недостаточно истории для сравнения;
+- insufficient_data — недостаточно данных для прогноза;
+- confirmation_required — черновик готов и ожидает подтверждения;
+- confirmed — действие подтверждено и записано;
+- cancelled — черновик отменён;
+- error — безопасная ошибка без внутренних подробностей.
+
+4. АНАЛИТИЧЕСКИЕ TOOLS
+
+get_expense_summary(period)
+Возвращает: status, period_start, period_end, currency, spent, income, net_cashflow, budget=null, remaining=null.
+
+get_category_expenses(period, category)
+Возвращает: status, period_start, period_end, currency, category, spent.
+
+get_top_categories(period, limit=3)
+Возвращает: status, period_start, period_end, currency, categories[{category, spent, share_percent}].
+
+compare_periods(period_1, period_2, category_limit=5)
+Возвращает: status, currency, period_1, period_2, change, change_percent, category_changes.
+Если базовый период пуст — insufficient_history. При нулевой базе change_percent=null.
+
+get_budget_status(period)
+Возвращает: status=ok, currency, period_start, period_end, spent, budget=null, remaining=null, risk_level="not_available".
+В текущем MVP бюджет не задаётся, поэтому AI сообщает, что установленного бюджета нет.
+
+get_group_distribution(period, category?)
+Возвращает: status, currency, period_start, period_end, category|null, members[{user_id, display_name, spent, share_percent}].
+
+get_balances()
+Возвращает точный результат существующего backend расчёта: balances и recommended_transfers.
+
+get_forecast(period="current_month")
+Возвращает: status, currency, period_start, period_end, spent_to_date, forecast_total, assumption, confidence.
+
+simulate_expense_change(period="current_month", category, change_percent)
+Диапазон change_percent: от -100 до 500.
+Возвращает: status, currency, category, change_percent, base_forecast_total, scenario_forecast_total, difference_from_base, assumption.
+
+5. ИЗМЕНЕНИЯ ЧЕРЕЗ ЧЕРНОВИК
+
+prepare_expense(...)
+- Использует контракт OperationCreate текущего backend.
+- split_type: equal, custom или percentage.
+- Проверяет плательщика, участников, уникальность, сумму долей и 100% при процентном делении.
+- Возвращает status=confirmation_required, action_id и preview.
+- Не создаёт операцию.
+
+prepare_income(...)
+- Поля: title, amount, category, recipient_id, operation_date?, comment?.
+- Преобразуется backend в OperationCreate type=income.
+- Возвращает черновик, но не создаёт операцию.
+
+prepare_debt(...)
+- Поля: debtor_id, creditor_id, amount, description, due_date?.
+- Использует контракт DirectDebtCreate.
+- Возвращает черновик, но не создаёт долг.
+
+confirm_action(action_id)
+- Разрешён только после отдельного явного подтверждения пользователя.
+- Backend проверяет владельца черновика, группу, статус и срок действия.
+- Выполняется не более одного раза: повтор возвращает уже полученный результат и не создаёт дубль.
+- Только backend вызывает create_operation или create_direct_debt в Storage.
+
+cancel_action(action_id)
+- Помечает принадлежащий пользователю черновик отменённым.
+- Отменённый черновик подтвердить нельзя.
+
+6. ЗАПРЕТЫ ДЛЯ AI
+- Нельзя обращаться к БД напрямую или формировать SQL.
+- Нельзя менять group_id/user_id из сообщения пользователя.
+- Нельзя записывать данные без черновика и отдельного подтверждения.
+- Нельзя удалять или редактировать существующие операции.
+- Нельзя создавать и удалять участников.
+- Нельзя подтверждать собственный черновик в том же ходе диалога.
+- Нельзя самостоятельно рассчитывать финансовые числа.
+- Нельзя выполнять неизвестные tools или передавать лишние параметры.
+
+7. ПРИМЕР
+Пользователь: «Потратил 6000 рублей на продукты. Дима должен 2000, Аня 3000».
+
+Сумма указанных долей равна 5000, поэтому AI не вызывает prepare_expense и спрашивает:
+«Указано распределение 5 000 ₽ из 6 000 ₽. На кого записать оставшиеся 1 000 ₽?»
+
+После уточнения AI вызывает prepare_expense. Backend возвращает action_id и черновик. AI показывает его пользователю. Только после отдельного «Подтверждаю» AI вызывает confirm_action.
+
