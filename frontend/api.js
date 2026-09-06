@@ -619,8 +619,10 @@
       panel.querySelectorAll(':scope > .ai-msg').forEach((message) => message.remove());
       messages = document.createElement('div');
       messages.className = 'api-ai-messages';
-      const suggestions = panel.querySelector('.ai-suggest');
-      panel.insertBefore(messages, suggestions || panel.firstChild);
+      // Suggestions are nested in the bottom controls wrapper on the full page;
+      // inserting relative to that nested node causes NotFoundError.
+      const controls = [...panel.children].find((child) => child.querySelector('.ai-suggest'));
+      panel.insertBefore(messages, controls || null);
     }
     const input = panel?.querySelector('.ai-input input');
     const send = panel?.querySelector('.ai-input .send');
