@@ -105,7 +105,7 @@
     document.querySelectorAll('.household .info').forEach((info) => {
       const title = info.querySelector('b');
       const subtitle = info.querySelector('span');
-      if (title) title.childNodes[0].textContent = `${state.group.name} `;
+      if (title) title.textContent = `${state.group.name} `;
       if (subtitle) {
         const count = state.members.length;
         const word = count % 10 === 1 && count % 100 !== 11 ? 'участник'
