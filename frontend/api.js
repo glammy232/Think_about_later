@@ -391,7 +391,7 @@
   function analyticsMonthKeys(count) {
     const now = new Date();
     return Array.from({ length: count }, (_, index) => {
-      const date = new Date(now.getFullYear(), now.getMonth() - count + index + 1, 1);
+      const date = new Date(now.getFullYear(), now.getMonth() + index, 1);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     });
   }
