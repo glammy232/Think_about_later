@@ -705,7 +705,7 @@
       if (!text.trim() || send.dataset.busy) return;
       messages.insertAdjacentHTML('beforeend', `<div class="ai-msg me">${escapeHtml(text)}</div>`);
       input.value = ''; send.dataset.busy = '1'; input.disabled = true;
-      const waiting = document.createElement('div'); waiting.className = 'ai-msg'; waiting.textContent = 'Думаю…'; messages.appendChild(waiting);
+      const waiting = document.createElement('div'); waiting.className = 'ai-msg ai-typing'; waiting.innerHTML = '<i></i><i></i><i></i>'; messages.appendChild(waiting);
       try {
         const response = await request(`/groups/${GROUP_ID}/assistant`, { method: 'POST', body: JSON.stringify({ message: text, conversation_id: conversationId }) });
         conversationId = response.conversation_id;
