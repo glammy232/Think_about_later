@@ -467,7 +467,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
     <div class="household">
       <div class="avatars"></div>
       <div class="info">
-        <b>Квартира на Ленина
+        <b>Общая группа
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
         </b>
         <span>5 участников</span>
@@ -482,7 +482,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
       </div>
       <div class="user-chip" data-clickable>
         <div class="av"></div>
-        Алексей
+        Пользователь
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
@@ -499,12 +499,9 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
 
       <div class="panel">
         <div class="panel-head"><h3>Динамика расходов</h3></div>
-        <div class="trend-total">54 320 ₽ <span style="font-size:12px; color:var(--text-muted); font-weight:500;">за апрель</span></div>
+        <div class="trend-total">0 ₽ <span style="font-size:12px; color:var(--text-muted); font-weight:500;">за апрель</span></div>
         <svg width="100%" height="180" viewBox="0 0 700 180" preserveAspectRatio="none">
-          <polyline fill="none" stroke="#1a7a4c" stroke-width="3"
-            points="20,140 130,100 240,115 350,80 460,90 570,35 680,25"/>
-          <circle cx="680" cy="25" r="5" fill="#1a7a4c"/>
-        </svg>
+          </svg>
         <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-top:4px;">
           <span>Ноябрь</span><span>Декабрь</span><span>Январь</span><span>Февраль</span><span>Март</span><span>Апрель</span>
         </div>
@@ -515,29 +512,14 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           <div class="panel-head"><h3>Расходы по категориям</h3></div>
           <div class="chart-wrap">
             <svg width="130" height="130" viewBox="0 0 42 42">
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#4ea3e8" stroke-width="6" stroke-dasharray="40 60" stroke-dashoffset="25"/>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#3fbf8f" stroke-width="6" stroke-dasharray="25 75" stroke-dashoffset="-15"/>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#f2b84b" stroke-width="6" stroke-dasharray="15 85" stroke-dashoffset="-40"/>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e05c5c" stroke-width="6" stroke-dasharray="10 90" stroke-dashoffset="-55"/>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#c9cfcb" stroke-width="6" stroke-dasharray="10 90" stroke-dashoffset="-65"/>
-            </svg>
+              </svg>
             <div style="flex:1;">
-              <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#4ea3e8"></span>Продукты</span><span class="legend-pct">40%</span><span class="legend-val">21 728 ₽</span></div>
-              <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#3fbf8f"></span>Коммуналка</span><span class="legend-pct">25%</span><span class="legend-val">13 580 ₽</span></div>
-              <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#f2b84b"></span>Транспорт</span><span class="legend-pct">15%</span><span class="legend-val">8 148 ₽</span></div>
-              <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#e05c5c"></span>Кафе и рестораны</span><span class="legend-pct">10%</span><span class="legend-val">5 432 ₽</span></div>
-              <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#c9cfcb"></span>Другое</span><span class="legend-pct">10%</span><span class="legend-val">5 432 ₽</span></div>
             </div>
           </div>
         </div>
 
         <div class="panel">
           <div class="panel-head"><h3>Траты по участникам</h3></div>
-          <div class="bal-row"><div class="bal-avatar">А</div><div class="bal-name"><b>Алексей</b></div><div class="bal-amount">18 400 ₽</div></div>
-          <div class="bal-row"><div class="bal-avatar">М</div><div class="bal-name"><b>Мария</b></div><div class="bal-amount">14 200 ₽</div></div>
-          <div class="bal-row"><div class="bal-avatar">И</div><div class="bal-name"><b>Иван</b></div><div class="bal-amount">9 600 ₽</div></div>
-          <div class="bal-row"><div class="bal-avatar">В</div><div class="bal-name"><b>Вы</b></div><div class="bal-amount">12 650 ₽</div></div>
-          <div class="bal-row"><div class="bal-avatar">П</div><div class="bal-name"><b>Павел</b></div><div class="bal-amount">0 ₽</div></div>
         </div>
       </section>
 
@@ -568,7 +550,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label>Кто добавляет</label>
           <select id="modal-who">
-            <option>Вы</option><option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Вы</option><option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -607,7 +589,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label id="debt-who-label">Кто вам должен</label>
           <select id="debt-who">
-            <option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -924,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const whoEl = document.getElementById('debt-who');
       const commentEl = document.getElementById('debt-comment');
-      const who = (whoEl && whoEl.value) || 'Алексей';
+      const who = (whoEl && whoEl.value) || 'Пользователь';
       const comment = commentEl ? commentEl.value.trim() : '';
       const formattedAmount = amount.toLocaleString('ru-RU');
 

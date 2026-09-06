@@ -467,7 +467,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
     <div class="household">
       <div class="avatars"></div>
       <div class="info">
-        <b>Квартира на Ленина
+        <b>Общая группа
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
         </b>
         <span>5 участников</span>
@@ -482,7 +482,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
       </div>
       <div class="user-chip" data-clickable>
         <div class="av"></div>
-        Алексей
+        Пользователь
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
@@ -503,85 +503,14 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
       <div class="panel">
         <div class="filters" style="margin-bottom:16px;">
           <select><option>Все категории</option><option>Продукты</option><option>Коммуналка</option><option>Транспорт</option><option>Кафе и рестораны</option></select>
-          <select><option>Все участники</option><option>Алексей</option><option>Мария</option><option>Иван</option><option>Вы</option></select>
+          <select><option>Все участники</option><option>Пользователь</option><option>Участник</option><option>Участник</option><option>Вы</option></select>
           <select><option>Апрель 2026</option><option>Март 2026</option><option>Февраль 2026</option></select>
         </div>
         <table class="data-table">
           <thead>
             <tr><th>Операция</th><th>Кто добавил</th><th>Категория</th><th>Дата</th><th style="text-align:right;">Сумма</th></tr>
           </thead>
-          <tbody id="tx-table-body">
-          <tr>
-            <td><div style="display:flex; align-items:center; gap:12px;">
-              <div class="tx-icon" style="background:#fdeee2;"><svg viewBox="0 0 24 24" fill="none" stroke="#e08a3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg></div>
-              <div class="tx-info"><b>Продукты в магазине</b><span>Пятёрочка</span></div>
-            </div></td>
-            <td>Алексей</td>
-            <td><span class="tx-tag">Продукты</span></td>
-            <td>Сегодня</td>
-            <td style="text-align:right;" class=""><b style="">1 245 ₽</b></td>
-          </tr>
-          <tr>
-            <td><div style="display:flex; align-items:center; gap:12px;">
-              <div class="tx-icon" style="background:#e7f0fb;"><svg viewBox="0 0 24 24" fill="none" stroke="#4ea3e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg></div>
-              <div class="tx-info"><b>Коммунальные услуги</b><span>Квартплата</span></div>
-            </div></td>
-            <td>Мария</td>
-            <td><span class="tx-tag">Коммуналка</span></td>
-            <td>8 мая</td>
-            <td style="text-align:right;" class=""><b style="">3 860 ₽</b></td>
-          </tr>
-          <tr>
-            <td><div style="display:flex; align-items:center; gap:12px;">
-              <div class="tx-icon" style="background:#fdeee2;"><svg viewBox="0 0 24 24" fill="none" stroke="#e08a3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 01-2-2v-3l2-5h14l2 5v3a2 2 0 01-2 2M5 17v2a1 1 0 001 1h1a1 1 0 001-1v-2m8 0v2a1 1 0 001 1h1a1 1 0 001-1v-2"/></svg></div>
-              <div class="tx-info"><b>Такси</b><span>Яндекс Такси</span></div>
-            </div></td>
-            <td>Иван</td>
-            <td><span class="tx-tag">Транспорт</span></td>
-            <td>13 мая</td>
-            <td style="text-align:right;" class=""><b style="">560 ₽</b></td>
-          </tr>
-          <tr>
-            <td><div style="display:flex; align-items:center; gap:12px;">
-              <div class="tx-icon" style="background:#f2e9fb;"><svg viewBox="0 0 24 24" fill="none" stroke="#9a5fd1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg></div>
-              <div class="tx-info"><b>Кафе</b><span>Кофемания</span></div>
-            </div></td>
-            <td>Вы</td>
-            <td><span class="tx-tag">Кафе и рестораны</span></td>
-            <td>12 мая</td>
-            <td style="text-align:right;" class=""><b style="">1 320 ₽</b></td>
-          </tr>
-          <tr>
-            <td><div style="display:flex; align-items:center; gap:12px;">
-              <div class="tx-icon" style="background:var(--green-light);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
-              <div class="tx-info"><b>Доход</b><span>Зарплата</span></div>
-            </div></td>
-            <td>Алексей</td>
-            <td><span class="tx-tag">Доход</span></td>
-            <td>10 мая</td>
-            <td style="text-align:right;" class="income"><b style="color:var(--green)">45 000 ₽</b></td>
-          </tr>
-          <tr>
-            <td><div style="display:flex; align-items:center; gap:12px;">
-              <div class="tx-icon" style="background:#fdeee2;"><svg viewBox="0 0 24 24" fill="none" stroke="#e08a3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg></div>
-              <div class="tx-info"><b>Продукты на неделю</b><span>Магнит</span></div>
-            </div></td>
-            <td>Мария</td>
-            <td><span class="tx-tag">Продукты</span></td>
-            <td>6 мая</td>
-            <td style="text-align:right;" class=""><b style="">980 ₽</b></td>
-          </tr>
-          <tr>
-            <td><div style="display:flex; align-items:center; gap:12px;">
-              <div class="tx-icon" style="background:#fdeee2;"><svg viewBox="0 0 24 24" fill="none" stroke="#e08a3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 01-2-2v-3l2-5h14l2 5v3a2 2 0 01-2 2M5 17v2a1 1 0 001 1h1a1 1 0 001-1v-2m8 0v2a1 1 0 001 1h1a1 1 0 001-1v-2"/></svg></div>
-              <div class="tx-info"><b>Поездка домой</b><span>Ситимобил</span></div>
-            </div></td>
-            <td>Иван</td>
-            <td><span class="tx-tag">Транспорт</span></td>
-            <td>4 мая</td>
-            <td style="text-align:right;" class=""><b style="">410 ₽</b></td>
-          </tr>
-          </tbody>
+          <tbody id="tx-table-body"></tbody>
         </table>
       </div>
 
@@ -612,7 +541,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label>Кто добавляет</label>
           <select id="modal-who">
-            <option>Вы</option><option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Вы</option><option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -651,7 +580,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label id="debt-who-label">Кто вам должен</label>
           <select id="debt-who">
-            <option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -968,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const whoEl = document.getElementById('debt-who');
       const commentEl = document.getElementById('debt-comment');
-      const who = (whoEl && whoEl.value) || 'Алексей';
+      const who = (whoEl && whoEl.value) || 'Пользователь';
       const comment = commentEl ? commentEl.value.trim() : '';
       const formattedAmount = amount.toLocaleString('ru-RU');
 

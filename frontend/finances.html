@@ -467,7 +467,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
     <div class="household">
       <div class="avatars"></div>
       <div class="info">
-        <b>Квартира на Ленина
+        <b>Общая группа
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
         </b>
         <span>5 участников</span>
@@ -482,7 +482,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
       </div>
       <div class="user-chip" data-clickable>
         <div class="av"></div>
-        Алексей
+        Пользователь
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
@@ -503,7 +503,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
       <section class="stats">
         <div class="stat-card primary">
           <div class="stat-label">Общие расходы</div>
-          <div class="stat-value">54 320 ₽</div>
+          <div class="stat-value">0 ₽</div>
           <div class="stat-sub">за апрель <span>💳</span></div>
         </div>
         <div class="stat-card">
@@ -513,7 +513,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         </div>
         <div class="stat-card">
           <div class="stat-label" style="color:var(--text-muted)">Остаток</div>
-          <div class="stat-value" style="color:var(--green)">6 680 ₽</div>
+          <div class="stat-value" style="color:var(--green)">0 ₽</div>
           <div class="stat-sub" style="color:var(--text-muted)">после расходов</div>
         </div>
         <div class="stat-card">
@@ -548,35 +548,11 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
             <h3>Последние операции</h3>
             <a class="link" href="operations.html" data-clickable>Все операции →</a>
           </div>
-          <div id="tx-list">
-          <div class="tx-row">
-            <div class="tx-icon" style="background:#fdeee2;"><svg viewBox="0 0 24 24" fill="none" stroke="#e08a3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg></div>
-            <div class="tx-info"><b>Продукты в магазине</b><span>Пятёрочка</span></div>
-            <div class="tx-amount">1 245 ₽</div>
-            <div class="tx-date">Сегодня</div>
-          </div>
-          <div class="tx-row">
-            <div class="tx-icon" style="background:#e7f0fb;"><svg viewBox="0 0 24 24" fill="none" stroke="#4ea3e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg></div>
-            <div class="tx-info"><b>Коммунальные услуги</b><span>Квартплата</span></div>
-            <div class="tx-amount">3 860 ₽</div>
-            <div class="tx-date">8 мая</div>
-          </div>
-          <div class="tx-row">
-            <div class="tx-icon" style="background:var(--green-light);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
-            <div class="tx-info"><b>Доход</b><span>Зарплата</span></div>
-            <div class="tx-amount income">45 000 ₽</div>
-            <div class="tx-date">10 мая</div>
-          </div>
-          </div>
+          <div id="tx-list"></div>
         </div>
 
         <div class="panel">
           <div class="panel-head"><h3>Расходы по категориям</h3></div>
-          <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#4ea3e8"></span>Продукты</span><span class="legend-pct">40%</span><span class="legend-val">21 728 ₽</span></div>
-          <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#3fbf8f"></span>Коммуналка</span><span class="legend-pct">25%</span><span class="legend-val">13 580 ₽</span></div>
-          <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#f2b84b"></span>Транспорт</span><span class="legend-pct">15%</span><span class="legend-val">8 148 ₽</span></div>
-          <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#e05c5c"></span>Кафе и рестораны</span><span class="legend-pct">10%</span><span class="legend-val">5 432 ₽</span></div>
-          <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#c9cfcb"></span>Другое</span><span class="legend-pct">10%</span><span class="legend-val">5 432 ₽</span></div>
           <a href="analytics.html"><button class="see-all" data-clickable style="margin-top:10px;">Смотреть аналитику</button></a>
         </div>
       </section>
@@ -608,7 +584,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label>Кто добавляет</label>
           <select id="modal-who">
-            <option>Вы</option><option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Вы</option><option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -647,7 +623,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label id="debt-who-label">Кто вам должен</label>
           <select id="debt-who">
-            <option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -964,7 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const whoEl = document.getElementById('debt-who');
       const commentEl = document.getElementById('debt-comment');
-      const who = (whoEl && whoEl.value) || 'Алексей';
+      const who = (whoEl && whoEl.value) || 'Пользователь';
       const comment = commentEl ? commentEl.value.trim() : '';
       const formattedAmount = amount.toLocaleString('ru-RU');
 

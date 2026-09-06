@@ -467,7 +467,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
     <div class="household">
       <div class="avatars"></div>
       <div class="info">
-        <b>Квартира на Ленина
+        <b>Общая группа
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
         </b>
         <span>5 участников</span>
@@ -482,7 +482,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
       </div>
       <div class="user-chip" data-clickable>
         <div class="av"></div>
-        Алексей
+        Пользователь
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
     </div>
@@ -501,7 +501,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           <div class="panel-head"><h3>Квартира</h3></div>
           <div class="field">
             <label>Название квартиры</label>
-            <input type="text" value="Квартира на Ленина">
+            <input type="text" value="Общая группа">
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Дата закрытия месяца</label>
@@ -509,7 +509,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           </div>
           <div class="field">
             <label>Ваше имя</label>
-            <input id="api-user-name" type="text" value="Алексей">
+            <input id="api-user-name" type="text" value="Пользователь">
           </div>
         </div>
 
@@ -569,7 +569,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label>Кто добавляет</label>
           <select id="modal-who">
-            <option>Вы</option><option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Вы</option><option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -608,7 +608,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
         <div class="field">
           <label id="debt-who-label">Кто вам должен</label>
           <select id="debt-who">
-            <option>Алексей</option><option>Мария</option><option>Иван</option><option>Павел</option>
+            <option>Пользователь</option><option>Участник</option><option>Участник</option><option>Участник</option>
           </select>
         </div>
         <div class="field">
@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const whoEl = document.getElementById('debt-who');
       const commentEl = document.getElementById('debt-comment');
-      const who = (whoEl && whoEl.value) || 'Алексей';
+      const who = (whoEl && whoEl.value) || 'Пользователь';
       const comment = commentEl ? commentEl.value.trim() : '';
       const formattedAmount = amount.toLocaleString('ru-RU');
 
