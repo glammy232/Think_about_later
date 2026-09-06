@@ -106,7 +106,6 @@ def get_group(group_id: str):
 @app.delete("/api/groups/{group_id}", status_code=204, tags=["groups"])
 def delete_group(group_id: str, user_id: Annotated[str, Depends(current_user_id)]):
     require_group(group_id)
-    validate_group_users(group_id, [user_id])
     if not storage.delete_group(group_id):
         raise HTTPException(status_code=404, detail="Group not found")
 
