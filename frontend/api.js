@@ -726,6 +726,7 @@
       if (!text.trim() || send.dataset.busy) return;
       messages.insertAdjacentHTML('beforeend', `<div class="ai-msg me">${escapeHtml(text)}</div>`);
       panel.querySelector('.ai-suggest')?.remove();
+      messages.scrollTop = messages.scrollHeight;
       input.value = ''; send.dataset.busy = '1'; input.disabled = true;
       const waiting = document.createElement('div'); waiting.className = 'ai-msg ai-typing'; waiting.innerHTML = '<i></i><i></i><i></i>'; messages.appendChild(waiting);
       try {
@@ -738,7 +739,7 @@
           bindDraftActions(waiting.nextElementSibling);
         }
       } catch (error) { waiting.textContent = `Ошибка: ${error.message}`; }
-      finally { delete send.dataset.busy; input.disabled = false; input.focus(); messages.scrollTop = messages.scrollHeight; }
+      finally { delete send.dataset.busy; input.disabled = false; input.focus(); requestAnimationFrame(() => { messages.scrollTop = messages.scrollHeight; }); }
     };
     send.addEventListener('click', () => sendMessage(input.value));
     input.addEventListener('keydown', (event) => { if (event.key === 'Enter') sendMessage(input.value); });

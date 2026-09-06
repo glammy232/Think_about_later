@@ -221,6 +221,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .ai-msg{background:#f4f6f5; border-radius:10px; padding:10px 12px; font-size:12.5px; color:#4c554f; line-height:1.5; max-width:88%;}
 .ai-msg.me{background:var(--green-light); color:#1c3f2c; align-self:flex-end;}
 .api-ai-messages{display:flex;flex:1;flex-direction:column;gap:12px;overflow-y:auto;padding:16px 8px;min-height:320px;max-height:430px;scroll-behavior:smooth}
+.api-ai-messages{scrollbar-width:none;-ms-overflow-style:none}.api-ai-messages::-webkit-scrollbar{display:none}
 .ai-chat>.api-ai-messages{order:1}.ai-chat>.panel-head{order:0}.ai-chat>div:last-child{order:2;margin-top:auto}
 .api-ai-messages .ai-msg{box-shadow:0 1px 2px rgba(20,40,30,.05);border-radius:16px 16px 16px 4px}
 .api-ai-messages .ai-msg.me{border-radius:16px 16px 4px 16px}
