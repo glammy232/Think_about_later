@@ -420,6 +420,8 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
 body[data-backend="connected"]::after{content:"API подключён";position:fixed;right:14px;bottom:14px;background:#e7f5ee;color:#1a7a4c;padding:6px 10px;border-radius:20px;font-size:11px;z-index:2;opacity:.75}
 .action-bar{left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);border-radius:18px}.action-bar .action-btn{margin:0 4px;border-radius:14px}
 body[data-backend="connected"]::after{display:none}
+body:has(.ai-chat[style*="480px"]) .action-bar{display:none}
+body:has(.ai-chat[style*="480px"]) .content{padding-bottom:24px}
 .household{position:relative}
 .household[data-members-bound]{overflow:visible!important}
 .api-members-menu{display:none;position:absolute;top:58px;left:0;width:260px;padding:12px;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 40px rgba(24,50,36,.16);z-index:100}
