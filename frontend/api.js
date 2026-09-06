@@ -573,6 +573,9 @@
         if (comment) comment.placeholder = button.dataset.type === 'income' ? '' : 'Например, продукты в Пятёрочке';
       });
     });
+    document.querySelectorAll('.action-btn.income,[data-open-modal="income"]').forEach((button) => {
+      button.addEventListener('click', () => setTimeout(() => { if (comment) comment.placeholder = ''; }, 0));
+    });
     const custom = document.createElement('input');
     custom.id = 'api-custom-category'; custom.placeholder = 'Своя категория'; custom.hidden = true;
     category.parentElement.appendChild(custom);
