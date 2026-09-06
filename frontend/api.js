@@ -45,6 +45,7 @@
   clearDemoContent();
   const state = { members: [], group: null, operations: [], analyticsMonths: 6 };
   const apiCache = new Map();
+  const cachePrefix = `krug_api_${GROUP_ID}_`;
   const monthGenitive = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
   const monthPrepositional = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
 
@@ -61,7 +62,10 @@
 
   async function request(path, options = {}) {
     const cacheKey = `${options.method || 'GET'}:${path}`;
-    if ((!options.method || options.method === 'GET') && apiCache.has(cacheKey)) return apiCache.get(cacheKey);
+    if (!options.method || options.method === 'GET') {
+      if (apiCache.has(cacheKey)) return apiCache.get(cacheKey);
+      try { const saved = localStorage.getItem(cachePrefix + cacheKey); if (saved) { const value = JSON.parse(saved); apiCache.set(cacheKey, value); return value; } } catch (_) {}
+    }
     const response = await fetch(`${API}${path}`, {
       ...options,
       headers: {
@@ -79,8 +83,8 @@
       throw new Error(detail);
     }
     const result = response.status === 204 ? null : await response.json();
-    if (!options.method || options.method === 'GET') apiCache.set(cacheKey, result);
-    else apiCache.clear();
+    if (!options.method || options.method === 'GET') { apiCache.set(cacheKey, result); try { localStorage.setItem(cachePrefix + cacheKey, JSON.stringify(result)); } catch (_) {} }
+    else { apiCache.clear(); Object.keys(localStorage).filter((key) => key.startsWith(cachePrefix)).forEach((key) => localStorage.removeItem(key)); }
     return result;
   }
 
