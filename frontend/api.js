@@ -257,7 +257,7 @@
     return `<div class="tx-row">
       <div class="tx-icon" style="background:${icon.bg}"><svg viewBox="0 0 24 24" fill="none" stroke="${icon.color}" stroke-width="2">${icon.path}</svg></div>
       <div class="tx-info"><b>${escapeHtml(data.title)}</b><span>${escapeHtml(data.sub)}</span></div>
-      <div class="tx-amount ${data.income ? 'income' : ''}">${data.income ? '+' : ''}${money(operation.amount)}</div>
+      <div class="tx-amount ${data.income ? 'income' : ''}">${data.income ? '+' : '−'}${money(operation.amount)}</div>
       <div class="tx-who">${escapeHtml(data.who)}</div><div class="tx-date">${data.date}</div>
     </div>`;
   }
@@ -269,7 +269,7 @@
       <div class="tx-icon" style="background:${icon.bg}"><svg viewBox="0 0 24 24" fill="none" stroke="${icon.color}" stroke-width="2">${icon.path}</svg></div>
       <div class="tx-info"><b>${escapeHtml(data.title)}</b><span>${escapeHtml(operation.comment || data.sub)}</span></div>
       </div></td><td>${escapeHtml(data.who)}</td><td><span class="tx-tag">${escapeHtml(data.sub)}</span></td>
-      <td>${data.date}</td><td style="text-align:right"><b style="${data.income ? 'color:var(--green)' : ''}">${data.income ? '+' : ''}${money(operation.amount)}</b></td></tr>`;
+      <td>${data.date}</td><td style="text-align:right"><b style="${data.income ? 'color:var(--green)' : ''}">${data.income ? '+' : '−'}${money(operation.amount)}</b></td></tr>`;
   }
 
   async function hydrateOperations() {
@@ -452,6 +452,8 @@
       const amounts = new Map(data.by_month.map((item) => [item.month, item.amount]));
       const values = keys.map((key) => ({ key, amount: amounts.get(key) || 0 }));
       const max = Math.max(...values.map((item) => item.amount), 0);
+      trendPanel?.querySelector('.api-y-axis')?.remove();
+      if (trendPanel && max) trendChart.insertAdjacentHTML('beforebegin', `<div class="api-y-axis"><span>${money(max)}</span><span>${money(max / 2)}</span><span>0 ₽</span></div>`);
       const labels = trendChart.nextElementSibling;
       if (labels) {
         labels.classList.add('api-month-labels');
