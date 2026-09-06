@@ -1,4 +1,5 @@
 import json
+import base64
 import re
 from datetime import datetime, timezone
 from io import BytesIO
@@ -32,16 +33,16 @@ def _number(value) -> float:
 
 
 def scan_receipt_image(content: bytes, filename: str, content_type: str) -> ReceiptDraft:
-    if not settings.gigachat_credentials:
-        raise RuntimeError('Сканер чеков не настроен: добавьте GIGACHAT_CREDENTIALS в .env')
-    from gigachat import GigaChat
-    from gigachat.models import Chat, Messages, MessagesRole
-
-    client = GigaChat(credentials=settings.gigachat_credentials, verify_ssl_certs=False)
-    uploaded = client.upload_file((filename, BytesIO(content), content_type), purpose='general')
-    result = client.chat(Chat(model=settings.gigachat_model, temperature=0.05,
-                              messages=[Messages(role=MessagesRole.USER, content=PROMPT, attachments=[uploaded.id])]))
-    data = parse_scanner_response(result.choices[0].message.content)
+    if not settings.deepseek_api_key:
+        raise RuntimeError('Сканер чеков не настроен: добавьте DEEPSEEK_API_KEY в .env')
+    from openai import OpenAI
+    client = OpenAI(api_key=settings.deepseek_api_key, base_url=settings.deepseek_base_url)
+    image_url = f'data:{content_type};base64,{base64.b64encode(content).decode()}'
+    result = client.chat.completions.create(model='deepseek-v4-flash-vision-exp', temperature=0.05,
+        response_format={'type': 'json_object'}, messages=[{'role': 'user', 'content': [
+            {'type': 'text', 'text': PROMPT}, {'type': 'image_url', 'image_url': {'url': image_url}}
+        ]}])
+    data = parse_scanner_response(result.choices[0].message.content or '')
     date_raw = str(data.get('date') or '')
     try:
         purchased_at = datetime.fromisoformat(date_raw).replace(tzinfo=timezone.utc) if date_raw else datetime.now(timezone.utc)
@@ -51,6 +52,6 @@ def scan_receipt_image(content: bytes, filename: str, content_type: str) -> Rece
     for item in data.get('items') or []:
         if isinstance(item, dict):
             items.append({'name': str(item.get('name') or 'Товар'), 'price': _number(item.get('price', 0)), 'category': str(item.get('category') or 'Другое')})
-    return ReceiptDraft(merchant='Чек', amount=_number(data.get('total', 0)), purchased_at=purchased_at,
+    return ReceiptDraft(merchant=str(data.get('shop') or 'Чек'), amount=_number(data.get('total', 0)), purchased_at=purchased_at,
                         category=(items[0]['category'] if items else 'Другое'),
                         fiscal_fields={'date': date_raw, 'total': str(data.get('total', ''))}, items=items, provider='gigachat')
