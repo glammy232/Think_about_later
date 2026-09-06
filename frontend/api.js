@@ -157,7 +157,7 @@
       menu.querySelector('.api-delete-group')?.addEventListener('click', async (event) => {
         event.stopPropagation();
         if (!confirm('Удалить группу и все её расходы, долги и участников? Это действие нельзя отменить.')) return;
-        try { await request(`/groups/${GROUP_ID}`, { method: 'DELETE' }); localStorage.removeItem('krug_group_id'); localStorage.removeItem('krug_user_id'); location.replace('onboarding.html'); }
+        try { await request(`/groups/${GROUP_ID}`, { method: 'DELETE' }); localStorage.removeItem('krug_group_id'); localStorage.removeItem('krug_user_id'); sessionStorage.removeItem('krug_conversation_id'); sessionStorage.removeItem('krug_conversation_id_v2'); location.replace('onboarding.html'); }
         catch (error) { notify(error.message, true); }
       });
       menu.querySelector('.api-profile-logout').addEventListener('click', (event) => {

@@ -79,6 +79,7 @@
         const data = await response.json();
         if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Проверьте заполнение полей');
         localStorage.setItem('krug_group_id', inviteGroup || data.group.id);
+        sessionStorage.removeItem('krug_conversation_id'); sessionStorage.removeItem('krug_conversation_id_v2');
         localStorage.setItem('krug_user_id', inviteGroup ? data.id : data.owner.id);
         location.replace('index.html');
       } catch (reason) {
