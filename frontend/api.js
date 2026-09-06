@@ -567,6 +567,12 @@
     const form = document.getElementById('modal-form');
     const category = document.getElementById('modal-category');
     if (!form || !category) return;
+    const comment = document.getElementById('modal-comment');
+    document.querySelectorAll('.type-toggle button[data-type]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (comment) comment.placeholder = button.dataset.type === 'income' ? '' : 'Например, продукты в Пятёрочке';
+      });
+    });
     const custom = document.createElement('input');
     custom.id = 'api-custom-category'; custom.placeholder = 'Своя категория'; custom.hidden = true;
     category.parentElement.appendChild(custom);
