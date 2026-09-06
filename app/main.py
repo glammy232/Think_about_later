@@ -380,10 +380,10 @@ def update_settings(user_id: str, data: SettingsUpdate):
     user = storage.get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if data.name is not None or data.avatar_url is not None:
-        user = storage.update_user_profile(user_id, data.name, data.avatar_url)
+    if data.name is not None:
+        user = storage.update_user_profile(user_id, data.name)
     current = storage.settings.get(user_id, {"currency": "RUB"})
-    current.update(data.model_dump(exclude={"name", "avatar_url"}, exclude_none=True))
+    current.update(data.model_dump(exclude={"name"}, exclude_none=True))
     storage.settings[user_id] = current
     return {"name": user.name, "avatar_url": user.avatar_url, **current}
 

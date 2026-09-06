@@ -25,6 +25,7 @@ def test_frontend_is_served_with_backend_integration():
     assert response.status_code == 200
     assert 'id="create-group-form"' in response.text
     assert "Финансовый помощник" in response.text
+    assert "owner-avatar" not in response.text
     assert client.get("/app/api.js").status_code == 200
 
 
@@ -77,7 +78,7 @@ def test_dashboard_contains_frontend_blocks():
 def test_add_member_appears_in_group_and_balances():
     response = client.post(
         "/api/groups/group-1/members",
-        json={"name": "Ольга", "avatar_url": "https://example.com/olga.png"},
+        json={"name": "Ольга"},
     )
     assert response.status_code == 201
     user_id = response.json()["id"]
@@ -370,14 +371,13 @@ def test_settings_change_name_and_currency_everywhere():
         "/api/users/user-1/settings",
         json={
             "name": "Александр",
-            "avatar_url": "https://example.com/alexander.png",
             "currency": "USD",
         },
     )
     assert response.status_code == 200
     assert response.json() == {
         "name": "Александр",
-        "avatar_url": "https://example.com/alexander.png",
+        "avatar_url": None,
         "currency": "USD",
     }
     members = client.get("/api/groups/group-1/members").json()
@@ -413,6 +413,21 @@ def test_change_group_name():
 )
 def test_invalid_settings_are_rejected(url, payload):
     assert client.patch(url, json=payload).status_code == 422
+
+
+def test_participant_photos_cannot_be_changed():
+    assert client.post(
+        "/api/groups/group-1/members",
+        json={"name": "Ольга", "avatar_url": "https://example.com/photo.png"},
+    ).status_code == 422
+    assert client.post(
+        "/api/groups",
+        json={
+            "name": "Дом",
+            "owner_name": "Ольга",
+            "owner_avatar_url": "https://example.com/photo.png",
+        },
+    ).status_code == 422
 
 
 def test_names_are_trimmed():

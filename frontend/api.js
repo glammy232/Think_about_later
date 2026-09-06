@@ -224,6 +224,9 @@
       if (values[0]) values[0].textContent = `+${money(incomingTotal)}`;
       if (values[1]) values[1].textContent = `−${money(outgoingTotal)}`;
       if (values[2]) values[2].textContent = `${incomingTotal - outgoingTotal >= 0 ? '+' : '−'}${money(Math.abs(incomingTotal - outgoingTotal))}`;
+      const subtitles = document.querySelectorAll('.stats .stat-sub');
+      if (subtitles[0]) subtitles[0].textContent = incoming.length ? `${incoming.length} ${incoming.length === 1 ? 'человек' : 'человека'}` : 'нет долгов';
+      if (subtitles[1]) subtitles[1].textContent = outgoing.length ? `${outgoing.length} ${outgoing.length === 1 ? 'человек' : 'человека'}` : 'нет долгов';
       const pagePanel = [...document.querySelectorAll('.content .panel')]
         .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Балансы участников'));
       let transfersPanel = document.getElementById('api-transfers');
@@ -280,8 +283,13 @@
     const trendChart = trendPanel?.querySelector('svg');
     if (trendChart) {
       if (!data.by_month.length) {
-        trendChart.innerHTML = '<text x="130" y="58" text-anchor="middle" fill="#9aa39e" font-size="12">Пока нет расходов</text>';
+        trendChart.style.display = 'none';
+        if (!trendPanel.querySelector('.api-trend-empty')) {
+          trendChart.insertAdjacentHTML('beforebegin', '<div class="api-trend-empty">Пока нет расходов</div>');
+        }
       } else {
+        trendPanel.querySelector('.api-trend-empty')?.remove();
+        trendChart.style.display = '';
         const values = data.by_month.slice(-6);
         const max = Math.max(...values.map((item) => item.amount), 1);
         const step = values.length > 1 ? 240 / (values.length - 1) : 0;
@@ -514,10 +522,8 @@
     [...apartment.querySelectorAll('.field')].find((field) => field.querySelector('label')?.textContent.includes('Дата закрытия'))?.remove();
     [...panels].find((panel) => panel.querySelector('h3')?.textContent === 'Участники и доступ')?.remove();
     const profileName = document.getElementById('api-user-name');
-    const profileAvatar = document.getElementById('api-avatar-url');
     const applyProfileValues = () => {
       profileName.defaultValue = profileName.value = userSettings.name || currentMember()?.name || 'Алексей';
-      profileAvatar.defaultValue = profileAvatar.value = userSettings.avatar_url || '';
     };
     applyProfileValues();
     setTimeout(applyProfileValues, 100);
@@ -530,7 +536,6 @@
           request(`/groups/${GROUP_ID}/settings`, { method: 'PATCH', body: JSON.stringify({ name: nameInput.value }) }),
           request(`/users/${USER_ID}/settings`, { method: 'PATCH', body: JSON.stringify({
             name: document.getElementById('api-user-name').value,
-            avatar_url: document.getElementById('api-avatar-url').value || null,
             currency: currencySelect.selectedIndex === 1 ? 'USD' : currencySelect.selectedIndex === 2 ? 'EUR' : 'RUB',
           }) }),
         ]);

@@ -411,6 +411,7 @@ body[data-backend="connected"]::after{content:"API подключён";position:
 .api-members-menu small{margin-left:auto;color:var(--green)}
 .api-user-static{cursor:default!important;pointer-events:none}
 .api-empty-chart{color:var(--text-muted);font-size:12px;line-height:1.45;padding:10px 0}
+.api-trend-empty{height:110px;display:grid;place-items:center;color:var(--text-muted);font-size:12px}
 .api-ai-messages{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;padding-right:4px}
 .api-ai-draft{width:min(100%,440px);background:#fff;border:1px solid #dce8e1;border-radius:14px;box-shadow:0 10px 28px rgba(24,50,36,.08);padding:14px;align-self:flex-start}
 .api-ai-draft-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #edf1ef}

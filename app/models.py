@@ -4,6 +4,7 @@ from typing import Annotated
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     HttpUrl,
     StringConstraints,
@@ -57,8 +58,9 @@ class User(BaseModel):
 
 
 class MemberCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     name: Name80
-    avatar_url: HttpUrl | None = None
 
 
 class Group(BaseModel):
@@ -68,9 +70,10 @@ class Group(BaseModel):
 
 
 class GroupCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     name: Name120
     owner_name: Name80
-    owner_avatar_url: HttpUrl | None = None
 
 
 class GroupCreateResponse(BaseModel):
@@ -271,8 +274,9 @@ class AssistantActionResponse(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     name: Name80 | None = None
-    avatar_url: HttpUrl | None = None
     currency: Currency | None = None
 
 

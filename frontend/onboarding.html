@@ -27,7 +27,6 @@
       <form id="create-group-form">
         <div class="field"><label for="group-name">Название общей группы</label><input id="group-name" maxlength="120" placeholder="Например, Наша квартира" required autofocus></div>
         <div class="field"><label for="owner-name">Ваше имя</label><input id="owner-name" maxlength="80" placeholder="Как вас показывать участникам" required></div>
-        <div class="field"><label for="owner-avatar">Ссылка на фотографию <span style="font-weight:400;color:var(--muted)">(необязательно)</span></label><input id="owner-avatar" type="url" placeholder="https://…"></div>
         <button type="submit">Создать группу</button>
         <div class="error" id="error"></div>
       </form>
@@ -52,8 +51,7 @@
           method: 'POST', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({
             name: document.getElementById('group-name').value.trim(),
-            owner_name: document.getElementById('owner-name').value.trim(),
-            owner_avatar_url: document.getElementById('owner-avatar').value.trim() || null
+            owner_name: document.getElementById('owner-name').value.trim()
           })
         });
         const data = await response.json();
