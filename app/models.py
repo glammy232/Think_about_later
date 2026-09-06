@@ -277,7 +277,6 @@ class SettingsUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: Name80 | None = None
-    currency: Currency | None = None
 
 
 class GroupSettingsUpdate(BaseModel):

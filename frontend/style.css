@@ -236,11 +236,11 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .ai-input .send svg{width:13px;height:13px;}
 
 /* legend / charts */
-.legend-row{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; padding:5px 0;}
+.legend-row{display:grid;grid-template-columns:minmax(0,1fr) 48px 82px;align-items:center;column-gap:8px;font-size:12.5px;padding:5px 0;}
 .legend-dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:8px;}
-.legend-left{display:flex; align-items:center; color:#4c554f;}
-.legend-pct{color:var(--text-muted); width:40px; display:inline-block;}
-.legend-val{font-weight:600; width:70px; text-align:right; display:inline-block;}
+.legend-left{display:flex;align-items:center;color:#4c554f;min-width:0;overflow-wrap:anywhere;}
+.legend-pct{color:var(--text-muted);text-align:right;}
+.legend-val{font-weight:600;text-align:right;white-space:nowrap;}
 .chart-wrap{display:flex; align-items:center; gap:20px;}
 .trend-total{font-size:20px; font-weight:700; margin-bottom:4px;}
 select{border:1px solid var(--border); border-radius:8px; font-size:12px; padding:6px 10px; background:#fff; cursor:pointer;}
@@ -435,3 +435,17 @@ body[data-backend="connected"]::after{content:"API подключён";position:
 .api-invite-link{display:flex;gap:8px;margin:14px 0}
 .api-invite-link input{min-width:0;flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#f6f8f7;color:#4c554f;font-size:12px}
 .api-invite-note{font-size:12.5px;color:var(--text-muted);line-height:1.5;margin:0}
+.sidebar .nav-sub{display:none!important;margin-left:12px;padding-left:18px!important;font-size:13px}
+.sidebar.finance-open .nav-sub{display:flex!important}
+.api-finance-arrow{margin-left:auto;font-size:16px;transition:transform .16s ease}
+.sidebar.finance-open .api-finance-arrow{transform:rotate(180deg)}
+.api-user-menu-trigger{position:relative;overflow:visible!important;cursor:pointer!important;pointer-events:auto!important}
+.api-profile-menu{display:none;position:absolute;right:0;top:48px;width:230px;padding:10px;background:#fff;border:1px solid var(--border);border-radius:13px;box-shadow:0 16px 40px rgba(24,50,36,.16);z-index:120}
+.api-profile-menu.open{display:block}
+.api-profile-menu>div{display:flex;align-items:center;gap:10px;padding:5px 6px 11px;border-bottom:1px solid #edf1ef}
+.api-profile-menu>div>span:last-child{display:grid;gap:2px}
+.api-profile-menu small{color:var(--text-muted);font-size:11px;font-weight:400}
+.api-profile-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#cfe0d5;color:#254334}
+.api-profile-menu button{width:100%;border:0;background:transparent;color:#c43d3d;text-align:left;padding:10px 8px 5px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.api-month-labels{display:flex;justify-content:space-around!important;gap:2px;font-size:11px!important}
+.api-month-labels span{flex:1;text-align:center;min-width:0}

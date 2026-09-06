@@ -7,7 +7,9 @@
     location.replace('onboarding.html');
     return;
   }
-  const state = { members: [], group: null, operations: [] };
+  const state = { members: [], group: null, operations: [], analyticsMonths: 6 };
+  const monthGenitive = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  const monthPrepositional = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
 
   const escapeHtml = (value) => String(value ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -17,6 +19,8 @@
   const memberName = (id) => state.members.find((member) => member.id === id)?.name || id;
   const memberInitial = (id) => memberName(id).trim().charAt(0).toUpperCase();
   const currentMember = () => state.members.find((member) => member.id === USER_ID);
+  const currentMonth = () => monthGenitive[new Date().getMonth()];
+  const periodLabel = (months) => months === 12 ? 'за год' : months === 6 ? 'за 6 месяцев' : 'за 3 месяца';
 
   async function request(path, options = {}) {
     const response = await fetch(`${API}${path}`, {
@@ -84,10 +88,75 @@
       if (avatar) avatar.textContent = memberInitial(USER_ID);
       chip.querySelector('svg')?.remove();
       chip.removeAttribute('data-clickable');
-      chip.classList.add('api-user-static');
+      chip.classList.remove('api-user-static');
+      chip.classList.add('api-user-menu-trigger');
     });
     bindGroupMembersMenu();
+    bindProfileMenu();
     populateMemberSelects();
+  }
+
+  function bindProfileMenu() {
+    document.querySelectorAll('.user-chip').forEach((chip) => {
+      if (chip.dataset.profileBound) return;
+      chip.dataset.profileBound = '1';
+      const menu = document.createElement('div');
+      menu.className = 'api-profile-menu';
+      menu.innerHTML = `<div><span class="api-profile-avatar">${escapeHtml(memberInitial(USER_ID))}</span><span><b>${escapeHtml(currentMember()?.name || 'Пользователь')}</b><small>Участник группы</small></span></div><button type="button">Выйти из профиля</button>`;
+      chip.appendChild(menu);
+      chip.addEventListener('click', (event) => {
+        event.stopPropagation();
+        menu.classList.toggle('open');
+      });
+      menu.querySelector('button').addEventListener('click', (event) => {
+        event.stopPropagation();
+        localStorage.removeItem('krug_group_id');
+        localStorage.removeItem('krug_user_id');
+        sessionStorage.removeItem('krug_conversation_id');
+        location.replace('onboarding.html');
+      });
+      document.addEventListener('click', () => menu.classList.remove('open'));
+    });
+  }
+
+  function bindFinanceNavigation() {
+    const sidebar = document.querySelector('.sidebar');
+    const finance = sidebar?.querySelector('.nav-item[href="finances.html"]:not(.nav-sub)');
+    if (!sidebar || !finance) return;
+    finance.removeAttribute('data-clickable');
+    finance.setAttribute('href', '#');
+    finance.setAttribute('aria-expanded', 'false');
+    finance.insertAdjacentHTML('beforeend', '<span class="api-finance-arrow">⌄</span>');
+    const financePage = ['finances.html', 'operations.html', 'balances.html', 'analytics.html', 'debts.html'].some((page) => location.pathname.endsWith(page));
+    const setOpen = (open) => {
+      sidebar.classList.toggle('finance-open', open);
+      finance.setAttribute('aria-expanded', String(open));
+    };
+    setOpen(financePage);
+    finance.addEventListener('click', (event) => {
+      event.preventDefault();
+      setOpen(!sidebar.classList.contains('finance-open'));
+    });
+  }
+
+  function updateCurrentDates() {
+    const now = new Date();
+    const month = currentMonth();
+    const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const pageSubtitle = document.querySelector('.page-head p');
+    if (pageSubtitle && location.pathname.endsWith('finances.html')) pageSubtitle.textContent = `Общий обзор бюджета группы за ${month}`;
+    if (pageSubtitle && location.pathname.endsWith('operations.html')) pageSubtitle.textContent = `Все расходы и доходы группы за ${month}`;
+    const dashboardSubs = document.querySelectorAll('.stats .stat-sub');
+    if (location.pathname.endsWith('index.html') || location.pathname.endsWith('/app/')) {
+      if (dashboardSubs[0]?.firstChild) dashboardSubs[0].firstChild.textContent = `за ${month} `;
+      if (dashboardSubs[1]?.firstChild) dashboardSubs[1].firstChild.textContent = `в ${monthPrepositional[new Date().getMonth()]} `;
+    }
+    document.querySelectorAll('.ai-suggest button').forEach((button) => {
+      if (button.textContent.includes('Проанализируй')) button.textContent = `Проанализируй наши расходы за ${month}`;
+      if (button.textContent.includes('Сравни')) button.textContent = `Сравни ${month} с ${monthPrepositional[previous.getMonth()]}`;
+      if (button.textContent.includes('Составь бюджет')) button.textContent = `Составь бюджет на ${monthGenitive[next.getMonth()]}`;
+    });
   }
 
   function bindGroupMembersMenu() {
@@ -178,7 +247,11 @@
     const months = [...new Set(state.operations.map((item) => item.operation_date.slice(0, 7)))].sort().reverse();
     selects[0].innerHTML = '<option value="">Все категории</option>' + categories.map((item) => `<option>${escapeHtml(item)}</option>`).join('');
     selects[1].innerHTML = '<option value="">Все участники</option>' + state.members.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`).join('');
-    selects[2].innerHTML = '<option value="">Все месяцы</option>' + months.map((item) => `<option value="${item}">${item}</option>`).join('');
+    selects[2].innerHTML = '<option value="">Все месяцы</option>' + months.map((item) => {
+      const [year, month] = item.split('-').map(Number);
+      const name = monthGenitive[month - 1];
+      return `<option value="${item}">${name.charAt(0).toUpperCase()}${name.slice(1)} ${year}</option>`;
+    }).join('');
     const apply = () => {
       const filtered = state.operations.filter((item) => (!selects[0].value || item.category === selects[0].value)
         && (!selects[1].value || item.payer_id === selects[1].value)
@@ -214,7 +287,10 @@
   }
 
   async function hydrateBalances() {
-    const data = await request(`/groups/${GROUP_ID}/balances`);
+    const [data, operations] = await Promise.all([
+      request(`/groups/${GROUP_ID}/balances`),
+      request(`/groups/${GROUP_ID}/operations`),
+    ]);
     const balancePanel = [...document.querySelectorAll('.panel')]
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Балансы участников'));
     if (balancePanel) {
@@ -227,9 +303,12 @@
       const values = document.querySelectorAll('.stats .stat-value');
       const incomingTotal = incoming.reduce((sum, item) => sum + item.amount, 0);
       const outgoingTotal = outgoing.reduce((sum, item) => sum + item.amount, 0);
+      const groupIncome = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
+      const groupExpenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
+      const groupTotal = groupIncome - groupExpenses;
       if (values[0]) values[0].textContent = `+${money(incomingTotal)}`;
       if (values[1]) values[1].textContent = `−${money(outgoingTotal)}`;
-      if (values[2]) values[2].textContent = `${incomingTotal - outgoingTotal >= 0 ? '+' : '−'}${money(Math.abs(incomingTotal - outgoingTotal))}`;
+      if (values[2]) values[2].textContent = `${groupTotal >= 0 ? '+' : '−'}${money(Math.abs(groupTotal))}`;
       const subtitles = document.querySelectorAll('.stats .stat-sub');
       if (subtitles[0]) subtitles[0].textContent = incoming.length ? `${incoming.length} ${incoming.length === 1 ? 'человек' : 'человека'}` : 'нет долгов';
       if (subtitles[1]) subtitles[1].textContent = outgoing.length ? `${outgoing.length} ${outgoing.length === 1 ? 'человек' : 'человека'}` : 'нет долгов';
@@ -255,17 +334,44 @@
     return data;
   }
 
+  function analyticsMonthKeys(count) {
+    const now = new Date();
+    return Array.from({ length: count }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - count + index + 1, 1);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    });
+  }
+
+  function bindAnalyticsPeriods() {
+    const selects = [...document.querySelectorAll('select')].filter((select) =>
+      [...select.options].some((option) => option.textContent.includes('6 месяцев')));
+    selects.forEach((select) => {
+      select.innerHTML = '<option value="3">За 3 месяца</option><option value="6">За 6 месяцев</option><option value="12">За год</option>';
+      select.value = String(state.analyticsMonths);
+      select.addEventListener('change', async () => {
+        state.analyticsMonths = Number(select.value);
+        selects.forEach((item) => { item.value = select.value; });
+        try { await hydrateAnalytics(); } catch (error) { notify(error.message, true); }
+      });
+    });
+  }
+
   async function hydrateAnalytics() {
-    const data = await request(`/groups/${GROUP_ID}/analytics`);
+    const data = await request(`/groups/${GROUP_ID}/analytics?months=${state.analyticsMonths}`);
     const chartColors = ['#4ea3e8', '#3fbf8f', '#f2b84b', '#e05c5c', '#9a5fd1', '#67b86f'];
     const total = document.querySelector('.trend-total');
-    if (total) total.firstChild.textContent = `${money(data.total)} `;
+    if (total) {
+      total.firstChild.textContent = `${money(data.total)} `;
+      const label = total.querySelector('span');
+      if (label) label.textContent = periodLabel(state.analyticsMonths);
+    }
     const categoryPanel = [...document.querySelectorAll('.panel')]
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Расходы по категориям'));
     const legend = categoryPanel?.querySelector('.chart-wrap > div');
     const categoryChart = categoryPanel?.querySelector('.chart-wrap svg');
     if (categoryChart) {
       if (!data.total) {
+        categoryChart.style.transform = '';
         categoryChart.innerHTML = '<circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#dfe4e1" stroke-width="6"/>';
       } else {
         let offset = 0;
@@ -288,27 +394,44 @@
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Динамика расходов'));
     const trendChart = trendPanel?.querySelector('svg');
     if (trendChart) {
-      if (!data.by_month.length) {
+      const keys = analyticsMonthKeys(state.analyticsMonths);
+      const amounts = new Map(data.by_month.map((item) => [item.month, item.amount]));
+      const values = keys.map((key) => ({ key, amount: amounts.get(key) || 0 }));
+      const max = Math.max(...values.map((item) => item.amount), 0);
+      const labels = trendChart.nextElementSibling;
+      if (labels) {
+        labels.classList.add('api-month-labels');
+        labels.innerHTML = values.map((item) => {
+          const month = Number(item.key.slice(5));
+          return `<span>${escapeHtml(monthGenitive[month - 1].slice(0, 3))}</span>`;
+        }).join('');
+      }
+      if (!max) {
         trendChart.style.display = 'none';
         if (!trendPanel.querySelector('.api-trend-empty')) {
-          trendChart.insertAdjacentHTML('beforebegin', '<div class="api-trend-empty">Пока нет расходов</div>');
+          trendChart.insertAdjacentHTML('beforebegin', '<div class="api-trend-empty">Пока нет расходов за выбранный период</div>');
         }
       } else {
         trendPanel.querySelector('.api-trend-empty')?.remove();
         trendChart.style.display = '';
-        const values = data.by_month.slice(-6);
-        const max = Math.max(...values.map((item) => item.amount), 1);
-        const step = values.length > 1 ? 240 / (values.length - 1) : 0;
-        const points = values.map((item, index) => `${10 + index * step},${95 - item.amount / max * 75}`).join(' ');
-        const last = points.split(' ').at(-1).split(',');
-        trendChart.innerHTML = `${values.length > 1 ? `<polyline fill="none" stroke="#1a7a4c" stroke-width="2.5" points="${points}"/>` : ''}<circle cx="${last[0]}" cy="${last[1]}" r="4" fill="#1a7a4c"/>`;
+        const viewBox = (trendChart.getAttribute('viewBox') || '0 0 260 110').split(/\s+/).map(Number);
+        const width = viewBox[2];
+        const height = viewBox[3];
+        const slot = (width - 20) / values.length;
+        const barWidth = Math.max(5, slot * 0.58);
+        trendChart.innerHTML = values.map((item, index) => {
+          const barHeight = item.amount ? Math.max(3, item.amount / max * (height - 30)) : 0;
+          const x = 10 + index * slot + (slot - barWidth) / 2;
+          const y = height - 15 - barHeight;
+          return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="${Math.min(4, barWidth / 4)}" fill="#1a7a4c"><title>${escapeHtml(monthGenitive[Number(item.key.slice(5)) - 1])}: ${money(item.amount)}</title></rect>`;
+        }).join('');
       }
     }
     const userPanel = [...document.querySelectorAll('.panel')]
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Траты по участникам'));
     if (userPanel) {
-      userPanel.querySelectorAll('.bal-row').forEach((row) => row.remove());
-      userPanel.insertAdjacentHTML('beforeend', data.by_user.map((item) => `<div class="bal-row"><div class="bal-avatar">${escapeHtml(memberInitial(item.user_id))}</div><div class="bal-name"><b>${escapeHtml(memberName(item.user_id))}</b></div><div class="bal-amount">${money(item.amount)}</div></div>`).join(''));
+      userPanel.querySelectorAll('.bal-row, .api-empty-chart').forEach((row) => row.remove());
+      userPanel.insertAdjacentHTML('beforeend', data.by_user.map((item) => `<div class="bal-row"><div class="bal-avatar">${escapeHtml(memberInitial(item.user_id))}</div><div class="bal-name"><b>${escapeHtml(memberName(item.user_id))}</b></div><div class="bal-amount">${money(item.amount)}</div></div>`).join('') || '<div class="api-empty-chart">Нет расходов участников за выбранный период</div>');
     }
   }
 
@@ -537,10 +660,8 @@
     const panels = document.querySelectorAll('.content .panel');
     const apartment = panels[0];
     const nameInput = apartment?.querySelector('input[type="text"]');
-    const currencySelect = apartment?.querySelector('select');
     const userSettings = await request(`/users/${USER_ID}/settings`);
     if (nameInput) nameInput.value = state.group.name;
-    if (currencySelect) currencySelect.value = userSettings.currency === 'USD' ? 'Доллар США ($)' : userSettings.currency === 'EUR' ? 'Евро (€)' : 'Российский рубль (₽)';
     const notifications = [...panels].find((panel) => panel.querySelector('h3')?.textContent === 'Уведомления');
     notifications?.remove();
     [...apartment.querySelectorAll('.field')].find((field) => field.querySelector('label')?.textContent.includes('Дата закрытия'))?.remove();
@@ -552,7 +673,7 @@
     applyProfileValues();
     setTimeout(applyProfileValues, 100);
     const subtitle = document.querySelector('.page-head p');
-    if (subtitle) subtitle.textContent = 'Название группы, профиль и валюта';
+    if (subtitle) subtitle.textContent = 'Название группы и профиль';
     const save = document.createElement('button'); save.className = 'primary-btn'; save.textContent = 'Сохранить настройки'; apartment?.appendChild(save);
     save.addEventListener('click', async () => {
       try {
@@ -560,7 +681,6 @@
           request(`/groups/${GROUP_ID}/settings`, { method: 'PATCH', body: JSON.stringify({ name: nameInput.value }) }),
           request(`/users/${USER_ID}/settings`, { method: 'PATCH', body: JSON.stringify({
             name: document.getElementById('api-user-name').value,
-            currency: currencySelect.selectedIndex === 1 ? 'USD' : currencySelect.selectedIndex === 2 ? 'EUR' : 'RUB',
           }) }),
         ]);
         notify('Настройки сохранены');
@@ -589,8 +709,11 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     try {
+      bindFinanceNavigation();
+      updateCurrentDates();
       await loadContext();
       enhanceOperationForm();
+      bindAnalyticsPeriods();
       await Promise.all([hydrateOperations(), hydrateDashboard(), hydrateBalances(), hydrateAnalytics(), hydrateDebts()]);
       bindOperationFilters();
       await hydrateMembers();

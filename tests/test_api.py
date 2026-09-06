@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -78,6 +80,40 @@ def test_dashboard_contains_frontend_blocks():
     }
     assert data["group"]["name"] == "Квартира на Ленина"
     assert len(data["group"]["member_ids"]) == 5
+
+
+def test_analytics_period_filters_expenses():
+    today = datetime.now(timezone.utc).date()
+    common = {
+        "type": "expense",
+        "category": "Продукты",
+        "payer_id": "user-1",
+        "participant_ids": ["user-1"],
+        "split_type": "equal",
+    }
+    recent = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            **common,
+            "title": "Недавний расход",
+            "amount": 100,
+            "operation_date": str(today),
+        },
+    )
+    old = client.post(
+        "/api/groups/group-1/operations",
+        json={
+            **common,
+            "title": "Старый расход",
+            "amount": 200,
+            "operation_date": str(today - timedelta(days=200)),
+        },
+    )
+    assert recent.status_code == old.status_code == 201
+    three_months = client.get("/api/groups/group-1/analytics?months=3").json()
+    year = client.get("/api/groups/group-1/analytics?months=12").json()
+    assert year["total"] >= three_months["total"] + 200
+    assert client.get("/api/groups/group-1/analytics?months=13").status_code == 422
 
 
 def test_add_member_appears_in_group_and_balances():
@@ -371,19 +407,18 @@ def test_payment_cannot_exceed_or_ignore_calculated_debt():
     assert unrelated.status_code == 422
 
 
-def test_settings_change_name_and_currency_everywhere():
+def test_settings_change_name_everywhere_with_fixed_currency():
     response = client.patch(
         "/api/users/user-1/settings",
         json={
             "name": "Александр",
-            "currency": "USD",
         },
     )
     assert response.status_code == 200
     assert response.json() == {
         "name": "Александр",
         "avatar_url": None,
-        "currency": "USD",
+        "currency": "RUB",
     }
     members = client.get("/api/groups/group-1/members").json()
     assert (
@@ -421,18 +456,24 @@ def test_invalid_settings_are_rejected(url, payload):
 
 
 def test_participant_photos_cannot_be_changed():
-    assert client.post(
-        "/api/groups/group-1/members",
-        json={"name": "Ольга", "avatar_url": "https://example.com/photo.png"},
-    ).status_code == 422
-    assert client.post(
-        "/api/groups",
-        json={
-            "name": "Дом",
-            "owner_name": "Ольга",
-            "owner_avatar_url": "https://example.com/photo.png",
-        },
-    ).status_code == 422
+    assert (
+        client.post(
+            "/api/groups/group-1/members",
+            json={"name": "Ольга", "avatar_url": "https://example.com/photo.png"},
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post(
+            "/api/groups",
+            json={
+                "name": "Дом",
+                "owner_name": "Ольга",
+                "owner_avatar_url": "https://example.com/photo.png",
+            },
+        ).status_code
+        == 422
+    )
 
 
 def test_names_are_trimmed():

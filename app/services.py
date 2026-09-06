@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from urllib.parse import parse_qs
 
 from app.models import (
@@ -109,10 +109,15 @@ def dashboard_summary(
     )
 
 
-def analytics(storage: Storage, group_id: str) -> dict:
+def analytics(storage: Storage, group_id: str, months: int | None = None) -> dict:
     operations = [
         o for o in storage.list_operations(group_id) if o.type == OperationType.expense
     ]
+    if months is not None:
+        today = datetime.now(timezone.utc).date()
+        first_month_index = today.year * 12 + today.month - months
+        start = date(first_month_index // 12, first_month_index % 12 + 1, 1)
+        operations = [o for o in operations if o.operation_date >= start]
     by_category: dict[str, float] = defaultdict(float)
     by_month: dict[str, float] = defaultdict(float)
     by_user: dict[str, float] = defaultdict(float)

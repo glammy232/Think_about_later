@@ -285,9 +285,12 @@ def create_payment(group_id: str, data: PaymentCreate):
 
 
 @app.get("/api/groups/{group_id}/analytics", tags=["analytics"])
-def get_analytics(group_id: str):
+def get_analytics(
+    group_id: str,
+    months: Annotated[int | None, Query(ge=1, le=12)] = None,
+):
     require_group(group_id)
-    return analytics(storage, group_id)
+    return analytics(storage, group_id, months)
 
 
 @app.post("/api/receipts/parse", response_model=ReceiptDraft, tags=["receipts"])
