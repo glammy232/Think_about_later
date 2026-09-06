@@ -82,9 +82,9 @@ def validate_group_users(group_id: str, user_ids: list[str]):
         )
 
 
-@app.get("/", tags=["system"])
+@app.get("/", include_in_schema=False)
 def root():
-    return {"service": settings.app_name, "version": settings.version, "docs": "/docs"}
+    return RedirectResponse(url="/demo")
 
 
 @app.get("/api/health", tags=["system"])

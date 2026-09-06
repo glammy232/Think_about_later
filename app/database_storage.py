@@ -26,7 +26,9 @@ def _numeric_id(value: str) -> int:
     try:
         return int(value.rsplit("-", 1)[-1])
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"Invalid database identifier: {value}") from exc
+        # Old browser sessions can contain in-memory IDs such as group-ab12cd.
+        # Treat them as a missing row so the API returns its normal 404 response.
+        return -1
 
 
 def _date(value):
@@ -38,6 +40,8 @@ class PostgresStorage:
 
     def __init__(self, database_url: str):
         self.database_url = database_url
+        # Kept for AI prompt compatibility; currency is fixed to RUB by the API.
+        self.settings: dict[str, dict] = {}
         self.pool = ConnectionPool(
             conninfo=database_url,
             min_size=1,
