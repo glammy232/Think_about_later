@@ -733,16 +733,26 @@
   }
 
   function bindReceipt() {
-    document.querySelector('.action-btn.receipt')?.addEventListener('click', async () => {
-      const qr = prompt('Вставьте строку QR-кода чека');
-      if (!qr) return;
+    const button = document.querySelector('.action-btn.receipt');
+    if (!button) return;
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment'; input.hidden = true;
+    document.body.appendChild(input);
+    button.addEventListener('click', () => input.click());
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0]; if (!file) return;
       try {
-        const draft = await request('/receipts/parse', { method: 'POST', body: JSON.stringify({ qr_data: qr }) });
+        const form = new FormData(); form.append('file', file);
+        const response = await fetch(`${API}/receipts/scan`, { method: 'POST', body: form, headers: { 'X-User-Id': USER_ID } });
+        if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.detail || `Ошибка ${response.status}`); }
+        const draft = await response.json();
         if (typeof window.openModal === 'function') window.openModal('expense');
         document.getElementById('modal-amount').value = draft.amount;
-        document.getElementById('modal-comment').value = draft.merchant;
+        document.getElementById('modal-comment').value = draft.merchant || 'Чек';
+        const category = document.getElementById('modal-category');
+        if (category && draft.category) category.value = draft.category;
         notify('Чек распознан. Проверьте черновик.');
       } catch (error) { notify(error.message, true); }
+      input.value = '';
     });
   }
 

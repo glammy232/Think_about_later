@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -38,6 +38,8 @@ from app.services import (
     simplify_transfers,
 )
 from app.storage import storage
+from app.receipt_scanner import scan_receipt_image
+from starlette.concurrency import run_in_threadpool
 
 app = FastAPI(
     title=settings.app_name,
@@ -314,6 +316,21 @@ def get_analytics(
 @app.post("/api/receipts/parse", response_model=ReceiptDraft, tags=["receipts"])
 def parse_receipt(data: ReceiptParseRequest):
     return parse_receipt_qr(data.qr_data)
+
+
+@app.post("/api/receipts/scan", response_model=ReceiptDraft, tags=["receipts"])
+async def scan_receipt(file: UploadFile = File(...)):
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=422, detail="Загрузите изображение чека")
+    content = await file.read()
+    if not content or len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=422, detail="Размер изображения должен быть от 1 байта до 10 МБ")
+    try:
+        return await run_in_threadpool(scan_receipt_image, content, file.filename or "receipt.jpg", file.content_type)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post(

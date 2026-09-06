@@ -7,3 +7,6 @@ openai==1.109.1
 python-dotenv==1.1.1
 psycopg[binary]==3.2.9
 psycopg-pool==3.2.6
+
+gigachat==0.2.3
+python-multipart==0.0.20
