@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Создание группы — Круг</title>
+  <style>
+    :root{--green:#1a7a4c;--green-dark:#14603b;--green-light:#e7f5ee;--bg:#f4f6f5;--border:#e7ebe9;--text:#1c2620;--muted:#8a9490}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at 20% 10%,#e7f5ee 0,transparent 32%),var(--bg);color:var(--text);display:grid;place-items:center;padding:24px}
+    .shell{width:min(980px,100%);display:grid;grid-template-columns:1fr 440px;background:#fff;border:1px solid #dce9e1;border-radius:28px;overflow:hidden;box-shadow:0 24px 70px rgba(24,80,49,.12)}
+    .intro{padding:64px;background:linear-gradient(145deg,#157447,#22995f);color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-height:590px}.logo{font-size:28px;font-weight:750;display:flex;align-items:center;gap:13px}.ring{width:42px;height:42px;border:10px solid rgba(255,255,255,.45);border-right-color:#fff;border-radius:50%}.intro h1{font-size:44px;line-height:1.08;margin:0 0 18px}.intro p{font-size:17px;line-height:1.55;opacity:.88;max-width:430px}.points{display:grid;gap:13px;font-size:14px}.points span:before{content:'✓';display:inline-grid;place-items:center;width:24px;height:24px;margin-right:10px;background:rgba(255,255,255,.16);border-radius:50%}
+    .form-side{padding:54px 46px;display:flex;flex-direction:column;justify-content:center}.step{font-size:12px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.08em}.form-side h2{font-size:30px;margin:10px 0 8px}.subtitle{color:var(--muted);font-size:14px;line-height:1.45;margin:0 0 30px}.field{margin-bottom:18px}.field label{display:block;font-size:13px;font-weight:650;margin-bottom:7px}.field input{width:100%;height:48px;border:1px solid var(--border);border-radius:12px;padding:0 14px;font:inherit;outline:none;transition:.18s}.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(26,122,76,.1)}button{width:100%;height:50px;border:0;border-radius:13px;background:var(--green);color:white;font:inherit;font-weight:700;cursor:pointer;margin-top:6px}button:hover{background:var(--green-dark)}button:disabled{opacity:.65;cursor:wait}.hint{font-size:12px;color:var(--muted);margin-top:18px;text-align:center}.error{min-height:20px;color:#d64545;font-size:13px;margin-top:10px}
+    @media(max-width:800px){.shell{grid-template-columns:1fr}.intro{min-height:auto;padding:36px}.intro h1{font-size:34px;margin-top:55px}.points{display:none}.form-side{padding:40px 28px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <div class="logo"><span class="ring"></span>Круг</div>
+      <div><h1>Общие расходы без споров</h1><p>Создайте группу для семьи, квартиры или друзей. Расходы, долги и балансы будут считаться автоматически.</p></div>
+      <div class="points"><span>Прозрачное распределение расходов</span><span>Понятно, кто кому должен</span><span>Финансовый помощник DeepSeek</span></div>
+    </section>
+    <section class="form-side">
+      <div class="step">Первый шаг</div>
+      <h2>Создайте группу</h2>
+      <p class="subtitle">Данные пока хранятся только до перезапуска backend. Позже сюда подключится база данных.</p>
+      <form id="create-group-form">
+        <div class="field"><label for="group-name">Название общей группы</label><input id="group-name" maxlength="120" placeholder="Например, Наша квартира" required autofocus></div>
+        <div class="field"><label for="owner-name">Ваше имя</label><input id="owner-name" maxlength="80" placeholder="Как вас показывать участникам" required></div>
+        <div class="field"><label for="owner-avatar">Ссылка на фотографию <span style="font-weight:400;color:var(--muted)">(необязательно)</span></label><input id="owner-avatar" type="url" placeholder="https://…"></div>
+        <button type="submit">Создать группу</button>
+        <div class="error" id="error"></div>
+      </form>
+      <p class="hint">После создания вы станете первым участником группы.</p>
+    </section>
+  </main>
+  <script>
+    const existingGroup = localStorage.getItem('krug_group_id');
+    const existingUser = localStorage.getItem('krug_user_id');
+    if (existingGroup && existingUser) {
+      fetch(`/api/groups/${encodeURIComponent(existingGroup)}`)
+        .then((response) => response.ok ? location.replace('index.html') : Promise.reject())
+        .catch(() => { localStorage.removeItem('krug_group_id'); localStorage.removeItem('krug_user_id'); });
+    }
+    document.getElementById('create-group-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = event.currentTarget.querySelector('button');
+      const error = document.getElementById('error');
+      button.disabled = true; button.textContent = 'Создаём…'; error.textContent = '';
+      try {
+        const response = await fetch('/api/groups', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            name: document.getElementById('group-name').value.trim(),
+            owner_name: document.getElementById('owner-name').value.trim(),
+            owner_avatar_url: document.getElementById('owner-avatar').value.trim() || null
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Проверьте заполнение полей');
+        localStorage.setItem('krug_group_id', data.group.id);
+        localStorage.setItem('krug_user_id', data.owner.id);
+        location.replace('index.html');
+      } catch (reason) {
+        error.textContent = reason.message || 'Не удалось создать группу';
+        button.disabled = false; button.textContent = 'Создать группу';
+      }
+    });
+  </script>
+</body>
+</html>

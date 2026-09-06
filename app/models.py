@@ -67,6 +67,17 @@ class Group(BaseModel):
     member_ids: list[str]
 
 
+class GroupCreate(BaseModel):
+    name: Name120
+    owner_name: Name80
+    owner_avatar_url: HttpUrl | None = None
+
+
+class GroupCreateResponse(BaseModel):
+    group: Group
+    owner: User
+
+
 class ShareInput(BaseModel):
     user_id: str
     amount: Money | None = None

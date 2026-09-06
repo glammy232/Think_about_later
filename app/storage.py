@@ -7,6 +7,7 @@ from app.models import (
     Debt,
     DirectDebtCreate,
     Group,
+    GroupCreate,
     MemberCreate,
     Operation,
     OperationCreate,
@@ -21,6 +22,7 @@ from app.models import (
 
 class Storage(Protocol):
     def get_group(self, group_id: str) -> Group | None: ...
+    def create_group(self, data: GroupCreate) -> tuple[Group, User]: ...
     def list_users(self, group_id: str) -> list[User]: ...
     def add_member(self, group_id: str, data: MemberCreate) -> User: ...
     def get_user(self, user_id: str) -> User | None: ...
@@ -41,14 +43,31 @@ class Storage(Protocol):
 class InMemoryStorage:
     """Temporary hackathon storage. Replace this class with DBStorage later."""
 
-    def __init__(self):
+    def __init__(self, seed_demo: bool = True):
         self.users: dict[str, User] = {}
         self.groups: dict[str, Group] = {}
         self.operations: dict[str, Operation] = {}
         self.debts: dict[str, Debt] = {}
         self.payments: dict[str, Payment] = {}
         self.settings: dict[str, dict] = {}
-        self._seed()
+        if seed_demo:
+            self._seed()
+
+    def create_group(self, data: GroupCreate) -> tuple[Group, User]:
+        owner = User(
+            id=f"user-{uuid4().hex[:10]}",
+            name=data.owner_name,
+            avatar_url=data.owner_avatar_url,
+        )
+        group = Group(
+            id=f"group-{uuid4().hex[:10]}",
+            name=data.name,
+            member_ids=[owner.id],
+        )
+        self.users[owner.id] = owner
+        self.groups[group.id] = group
+        self.settings[owner.id] = {"currency": "RUB"}
+        return deepcopy(group), deepcopy(owner)
 
     def _seed(self):
         names = ["Алексей", "Мария", "Иван", "Вы", "Павел"]
@@ -256,4 +275,4 @@ class InMemoryStorage:
         return deepcopy(payment)
 
 
-storage: Storage = InMemoryStorage()
+storage: Storage = InMemoryStorage(seed_demo=False)

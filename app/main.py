@@ -16,6 +16,8 @@ from app.models import (
     AssistantResponse,
     Debt,
     DirectDebtCreate,
+    GroupCreate,
+    GroupCreateResponse,
     GroupSettingsUpdate,
     MemberCreate,
     Operation,
@@ -96,6 +98,17 @@ def health():
 @app.get("/api/groups/{group_id}", tags=["groups"])
 def get_group(group_id: str):
     return require_group(group_id)
+
+
+@app.post(
+    "/api/groups",
+    response_model=GroupCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["groups"],
+)
+def create_group(data: GroupCreate):
+    group, owner = storage.create_group(data)
+    return GroupCreateResponse(group=group, owner=owner)
 
 
 @app.get("/api/groups/{group_id}/members", tags=["groups"])
@@ -382,4 +395,4 @@ if FRONTEND_DIR.exists():
 
 @app.get("/demo", include_in_schema=False)
 def open_demo():
-    return RedirectResponse(url="/app/index.html")
+    return RedirectResponse(url="/app/onboarding.html")

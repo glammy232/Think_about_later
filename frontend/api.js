@@ -1,8 +1,12 @@
 /* Backend integration for the static hackathon UI. */
 (() => {
   const API = '/api';
-  const GROUP_ID = 'group-1';
-  const USER_ID = localStorage.getItem('krug_user_id') || 'user-1';
+  const GROUP_ID = localStorage.getItem('krug_group_id');
+  const USER_ID = localStorage.getItem('krug_user_id');
+  if (!GROUP_ID || !USER_ID) {
+    location.replace('onboarding.html');
+    return;
+  }
   const state = { members: [], group: null, operations: [] };
 
   const escapeHtml = (value) => String(value ?? '')
@@ -55,7 +59,12 @@
       const title = info.querySelector('b');
       const subtitle = info.querySelector('span');
       if (title) title.childNodes[0].textContent = `${state.group.name} `;
-      if (subtitle) subtitle.textContent = `${state.members.length} участников`;
+      if (subtitle) {
+        const count = state.members.length;
+        const word = count % 10 === 1 && count % 100 !== 11 ? 'участник'
+          : [2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100) ? 'участника' : 'участников';
+        subtitle.textContent = `${count} ${word}`;
+      }
     });
     document.querySelectorAll('.user-chip').forEach((chip) => {
       const avatar = chip.querySelector('.av');
@@ -67,8 +76,29 @@
       if (avatar && currentMember()?.avatar_url) {
         avatar.innerHTML = `<img alt="" src="${escapeHtml(currentMember().avatar_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
       }
+      chip.querySelector('svg')?.remove();
+      chip.removeAttribute('data-clickable');
+      chip.classList.add('api-user-static');
     });
+    bindGroupMembersMenu();
     populateMemberSelects();
+  }
+
+  function bindGroupMembersMenu() {
+    document.querySelectorAll('.household').forEach((household) => {
+      if (household.dataset.membersBound) return;
+      household.dataset.membersBound = '1';
+      const menu = document.createElement('div');
+      menu.className = 'api-members-menu';
+      menu.innerHTML = `<b>${escapeHtml(state.group.name)}</b>` + state.members.map((member) =>
+        `<div><span>${member.avatar_url ? `<img src="${escapeHtml(member.avatar_url)}" alt="">` : '👤'}</span>${escapeHtml(member.name)}${member.id === USER_ID ? '<small>Вы</small>' : ''}</div>`).join('');
+      household.appendChild(menu);
+      household.addEventListener('click', (event) => {
+        event.stopPropagation();
+        menu.classList.toggle('open');
+      });
+      document.addEventListener('click', () => menu.classList.remove('open'));
+    });
   }
 
   function populateMemberSelects() {
@@ -458,7 +488,13 @@
       if (profileName && !profileName.value) profileName.value = state.members.find((member) => member.id === USER_ID)?.name || 'Алексей';
       document.body.dataset.backend = 'connected';
     } catch (error) {
-      notify(`Backend недоступен: ${error.message}`, true);
+      if (String(error.message).includes('Group not found') || String(error.message).includes('not group members')) {
+        localStorage.removeItem('krug_group_id');
+        localStorage.removeItem('krug_user_id');
+        location.replace('onboarding.html');
+      } else {
+        notify(`Backend недоступен: ${error.message}`, true);
+      }
     }
   });
 })();

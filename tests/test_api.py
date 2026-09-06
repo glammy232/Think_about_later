@@ -23,9 +23,38 @@ def test_health_and_docs_contract():
 def test_frontend_is_served_with_backend_integration():
     response = client.get("/demo")
     assert response.status_code == 200
-    assert 'src="api.js?' in response.text
+    assert 'id="create-group-form"' in response.text
     assert "DeepSeek" in response.text
     assert client.get("/app/api.js").status_code == 200
+
+
+def test_clean_start_creates_group_owner_and_zero_dashboard(monkeypatch):
+    clean_storage = InMemoryStorage(seed_demo=False)
+    monkeypatch.setattr(main_module, "storage", clean_storage)
+    created = client.post(
+        "/api/groups",
+        json={"name": "Наша группа", "owner_name": "Дмитрий"},
+    )
+    assert created.status_code == 201
+    body = created.json()
+    group_id = body["group"]["id"]
+    owner_id = body["owner"]["id"]
+    assert body["group"]["member_ids"] == [owner_id]
+
+    dashboard = client.get(
+        f"/api/groups/{group_id}/dashboard",
+        headers={"X-User-Id": owner_id},
+    )
+    assert dashboard.status_code == 200
+    assert dashboard.json()["summary"] == {
+        "group_id": group_id,
+        "current_user_id": owner_id,
+        "total_expenses": 0.0,
+        "user_expenses": 0.0,
+        "owed_to_user": 0.0,
+        "user_owes": 0.0,
+    }
+    assert dashboard.json()["recent_operations"] == []
 
 
 def test_dashboard_contains_frontend_blocks():
