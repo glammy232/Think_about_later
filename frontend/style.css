@@ -133,7 +133,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .icon-btn svg{width:18px; height:18px; stroke:#4c554f;}
 .user-chip{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; cursor:pointer; padding:4px 6px; border-radius:10px; transition: background-color .2s var(--ease);}
 .user-chip:hover{background:#f4f6f5;}
-.user-chip .av{width:34px; height:34px; border-radius:50%; background:#cfe0d5; display:flex; align-items:center; justify-content:center;}
+.user-chip .av{width:34px; height:34px; border-radius:50%; background:#cfe0d5; display:flex; align-items:center; justify-content:center;font-weight:700;}
 
 .content{padding:24px 32px 60px; display:flex; flex-direction:column; gap:20px;}
 .page-head{display:flex; align-items:center; justify-content:space-between;}

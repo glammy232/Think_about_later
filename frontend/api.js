@@ -15,6 +15,7 @@
   const money = (value) => `${Number(value || 0).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ₽`;
   const formatDate = (value) => new Date(`${value}T00:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
   const memberName = (id) => state.members.find((member) => member.id === id)?.name || id;
+  const memberInitial = (id) => memberName(id).trim().charAt(0).toUpperCase();
   const currentMember = () => state.members.find((member) => member.id === USER_ID);
 
   async function request(path, options = {}) {
@@ -58,9 +59,7 @@
     const avatarColors = ['#f6cf8e', '#f0b7b0', '#a9d3e5', '#cfe8d7', '#ded1ef', '#f2d5aa'];
     document.querySelectorAll('.household .avatars').forEach((avatars) => {
       avatars.innerHTML = state.members.map((member, index) => {
-        const content = member.avatar_url
-          ? `<img src="${escapeHtml(member.avatar_url)}" alt="">`
-          : escapeHtml(member.name.trim().charAt(0).toUpperCase());
+        const content = escapeHtml(member.name.trim().charAt(0).toUpperCase());
         return `<span title="${escapeHtml(member.name)}" style="background:${avatarColors[index % avatarColors.length]}">${content}</span>`;
       }).join('');
     });
@@ -82,9 +81,7 @@
           node.textContent = ` ${currentMember()?.name || 'Пользователь'} `;
         }
       });
-      if (avatar && currentMember()?.avatar_url) {
-        avatar.innerHTML = `<img alt="" src="${escapeHtml(currentMember().avatar_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-      }
+      if (avatar) avatar.textContent = memberInitial(USER_ID);
       chip.querySelector('svg')?.remove();
       chip.removeAttribute('data-clickable');
       chip.classList.add('api-user-static');
@@ -102,7 +99,7 @@
       const menu = document.createElement('div');
       menu.className = 'api-members-menu';
       menu.innerHTML = `<b>${escapeHtml(state.group.name)}</b>` + state.members.map((member) =>
-        `<div><span>${member.avatar_url ? `<img src="${escapeHtml(member.avatar_url)}" alt="">` : '👤'}</span>${escapeHtml(member.name)}${member.id === USER_ID ? '<small>Вы</small>' : ''}</div>`).join('');
+        `<div><span>${escapeHtml(memberInitial(member.id))}</span>${escapeHtml(member.name)}${member.id === USER_ID ? '<small>Вы</small>' : ''}</div>`).join('');
       household.appendChild(menu);
       household.addEventListener('click', (event) => {
         event.stopPropagation();
@@ -210,7 +207,7 @@
       const label = item.balance > 0 ? `${own ? 'вам должны' : 'получит'} ${money(item.balance)}`
         : item.balance < 0 ? `${own ? 'вы должны' : 'должен'} ${money(Math.abs(item.balance))}` : 'в балансе';
       const cls = item.balance > 0 ? 'owed' : item.balance < 0 ? 'owe' : 'neutral';
-      return `<div class="bal-row"><div class="bal-avatar">${own ? '🙂' : '👤'}</div>
+      return `<div class="bal-row"><div class="bal-avatar">${escapeHtml(memberInitial(item.user_id))}</div>
         <div class="bal-name"><b>${escapeHtml(item.user_name)}</b><span>${own ? 'Текущий пользователь' : 'Участник группы'}</span></div>
         <div class="bal-amount ${cls}">${label}</div></div>`;
     }).join('');
@@ -311,7 +308,7 @@
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Траты по участникам'));
     if (userPanel) {
       userPanel.querySelectorAll('.bal-row').forEach((row) => row.remove());
-      userPanel.insertAdjacentHTML('beforeend', data.by_user.map((item) => `<div class="bal-row"><div class="bal-avatar">👤</div><div class="bal-name"><b>${escapeHtml(memberName(item.user_id))}</b></div><div class="bal-amount">${money(item.amount)}</div></div>`).join(''));
+      userPanel.insertAdjacentHTML('beforeend', data.by_user.map((item) => `<div class="bal-row"><div class="bal-avatar">${escapeHtml(memberInitial(item.user_id))}</div><div class="bal-name"><b>${escapeHtml(memberName(item.user_id))}</b></div><div class="bal-amount">${money(item.amount)}</div></div>`).join(''));
     }
   }
 
@@ -338,7 +335,7 @@
     const grid = document.querySelector('.content .grid-2');
     if (!grid) return;
     grid.innerHTML = state.members.map((member, index) => `<div class="member-card">
-      <div class="member-avatar">${member.avatar_url ? `<img src="${escapeHtml(member.avatar_url)}" alt="">` : '👤'}</div>
+      <div class="member-avatar">${escapeHtml(memberInitial(member.id))}</div>
       <div class="member-info"><b>${escapeHtml(member.name)}</b><span>Участник группы</span></div>
       <span class="member-role ${index ? 'guest' : ''}">${index ? 'Участник' : 'Админ'}</span></div>`).join('');
     const button = document.querySelector('.page-head .primary-btn');
