@@ -1,5 +1,6 @@
 /* Backend integration for the static hackathon UI. */
 (() => {
+  document.documentElement.classList.add('api-hydrating');
   const API = '/api';
   const GROUP_ID = localStorage.getItem('krug_group_id');
   const USER_ID = localStorage.getItem('krug_user_id');
@@ -798,6 +799,7 @@
       const profileName = document.getElementById('api-user-name');
       if (profileName && !profileName.value) profileName.value = state.members.find((member) => member.id === USER_ID)?.name || 'Алексей';
       document.body.dataset.backend = 'connected';
+      document.documentElement.classList.remove('api-hydrating');
     } catch (error) {
       if (String(error.message).includes('Group not found') || String(error.message).includes('not group members')) {
         localStorage.removeItem('krug_group_id');

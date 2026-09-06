@@ -454,3 +454,7 @@ body[data-backend="connected"]::after{content:"API подключён";position:
 .api-share>input[type="checkbox"]{flex:0 0 auto;width:18px;height:18px;margin:0;accent-color:#1677e8}
 .api-share>span{flex:1;min-width:0}
 .api-share>input[type="number"]{width:110px;flex:0 0 110px}
+:root.api-hydrating .content{opacity:.72;pointer-events:none}
+:root.api-hydrating .stats .stat-value,
+:root.api-hydrating .stats .stat-sub{color:transparent!important;background:#edf1ef;border-radius:6px;min-width:72px;min-height:1em}
+:root.api-hydrating .panel{transition:none!important}
