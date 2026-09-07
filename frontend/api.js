@@ -368,7 +368,10 @@
     const totalValue = document.getElementById('group-total-value');
     if (totalValue) totalValue.textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
     const monthLabel = document.getElementById('group-total-month');
-    if (monthLabel) monthLabel.firstChild.textContent = `за ${monthGenitive[new Date().getMonth()]}`;
+    const currentMonth = monthGenitive[new Date().getMonth()];
+    if (monthLabel) monthLabel.innerHTML = `за ${currentMonth} <span class="flip-card-icon">↗</span>`;
+    const expensesMonth = document.getElementById('total-expenses-month');
+    if (expensesMonth) expensesMonth.firstChild.textContent = `за ${currentMonth} `;
     if (location.pathname.endsWith('balances.html')) {
       const incoming = data.recommended_transfers.filter((item) => item.to_user_id === USER_ID);
       const outgoing = data.recommended_transfers.filter((item) => item.from_user_id === USER_ID);
