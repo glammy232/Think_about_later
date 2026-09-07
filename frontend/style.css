@@ -470,7 +470,7 @@ body:has(.ai-chat[style*="480px"]) .content{padding-bottom:24px}
 .api-profile-menu small{color:var(--text-muted);font-size:11px;font-weight:400}
 .api-profile-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#cfe0d5;color:#254334}
 .api-profile-menu button{width:100%;border:0;background:transparent;color:#c43d3d;text-align:left;padding:10px 8px 5px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
-.api-month-labels{display:grid!important;grid-template-columns:repeat(6,1fr);gap:2px;font-size:11px!important;margin-left:70px!important;width:calc(100% - 70px)}
+.api-month-labels{display:grid!important;grid-template-columns:repeat(6,1fr);gap:2px;font-size:11px!important;margin-left:22px!important;width:calc(100% - 22px)}
 .api-month-labels span{flex:1;text-align:center;min-width:0}
 .api-share{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:8px 10px;border:1px solid #edf1ef;border-radius:10px;box-sizing:border-box}
 .api-share>input[type="checkbox"]{flex:0 0 auto;width:18px;height:18px;margin:0;accent-color:#1677e8}
