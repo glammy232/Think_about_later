@@ -351,12 +351,10 @@
     if (subs[3]) subs[3].firstChild.textContent = `${dashboard.summary.user_owes > 0 ? 'есть долги' : 'нет долгов'} `;
   }
 
-  function balanceRows(items, transfers = []) {
+  function balanceRows(items) {
     return items.map((item) => {
       const own = item.user_id === USER_ID;
-      const incomingFrom = transfers.filter((transfer) => transfer.to_user_id === item.user_id).map((transfer) => transfer.from_user_name);
-      const sender = incomingFrom.length === 1 ? ` от ${incomingFrom[0]}` : incomingFrom.length > 1 ? ' от участников' : '';
-      const label = item.balance > 0 ? `${own ? 'вам должны' : `получит${sender}`} ${money(item.balance)}`
+      const label = item.balance > 0 ? `${own ? 'вам должны' : 'получит'} ${money(item.balance)}`
         : item.balance < 0 ? `${own ? 'вы должны' : 'должен'} ${money(Math.abs(item.balance))}` : 'в балансе';
       const cls = item.balance > 0 ? 'owed' : item.balance < 0 ? 'owe' : 'neutral';
       return `<div class="bal-row"><div class="bal-avatar">${escapeHtml(memberInitial(item.user_id))}</div>
@@ -375,7 +373,7 @@
     if (balancePanel) {
       balancePanel.querySelectorAll('.bal-row').forEach((row) => row.remove());
       const moreButton = balancePanel.querySelector('a[href="balances.html"]');
-      const rows = balanceRows(data.balances, data.recommended_transfers) || '<p class="api-empty-state">Нет участников</p>';
+      const rows = balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>';
       if (moreButton) moreButton.insertAdjacentHTML('beforebegin', rows);
       else balancePanel.insertAdjacentHTML('beforeend', rows);
     }
