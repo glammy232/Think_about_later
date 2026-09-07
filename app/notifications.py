@@ -16,3 +16,10 @@ def check_group(storage, group_id, user_id):
  if days>=7 and spent>0: _emit((group_id,user_id,'budget'),group_id,user_id,'budget','Прогноз бюджета',f'По текущему темпу расходы могут составить около {spent/days*30:.0f} ₽. Проверьте необязательные траты.')
 def list_notifications(group_id, recipient_id):
  with _lock: return [dict(x) for x in _items if x['group_id']==group_id and x['recipient_id']==recipient_id]
+
+def emit_debt_settled(storage, group_id, debtor_id, creditor_id, amount, reference):
+ names={u.id:u.name for u in storage.list_users(group_id)}
+ debtor_name=names.get(debtor_id, 'Участник'); creditor_name=names.get(creditor_id, 'Участник')
+ amount_text=f'{amount:.2f} ₽'
+ _emit((reference, debtor_id), group_id, debtor_id, 'debt_settled', 'Долг погашен', f'Вы погасили долг перед {creditor_name} на {amount_text}.')
+ _emit((reference, creditor_id), group_id, creditor_id, 'debt_settled', 'Долг погашен', f'{debtor_name} погасил долг перед вами на {amount_text}.')

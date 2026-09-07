@@ -40,7 +40,7 @@ from app.services import (
 )
 from app.storage import storage
 from app.receipt_scanner import parse_receipt_qr_image, scan_receipt_image
-from app.notifications import check_group, list_notifications, _emit
+from app.notifications import check_group, list_notifications, emit_debt_settled, _emit
 from starlette.concurrency import run_in_threadpool
 
 app = FastAPI(
@@ -297,6 +297,7 @@ def settle_debt(debt_id: str):
     debt = storage.settle_debt(debt_id)
     if not debt:
         raise HTTPException(status_code=404, detail="Debt not found")
+    emit_debt_settled(storage, debt.group_id, debt.debtor_id, debt.creditor_id, debt.amount, debt.id)
     return debt
 
 
@@ -335,7 +336,9 @@ def create_payment(group_id: str, data: PaymentCreate):
             status_code=422,
             detail=f"Payment exceeds active debt of {matching_transfer.amount:.2f}",
         )
-    return storage.create_payment(group_id, data)
+    payment = storage.create_payment(group_id, data)
+    emit_debt_settled(storage, group_id, data.from_user_id, data.to_user_id, data.amount, payment.id)
+    return payment
 
 
 @app.get("/api/groups/{group_id}/analytics", tags=["analytics"])
