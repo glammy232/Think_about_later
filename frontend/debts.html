@@ -818,7 +818,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.querySelectorAll('.type-toggle button').forEach((btn) => {
+  document.querySelectorAll('#modal-overlay .type-toggle button').forEach((btn) => {
     btn.addEventListener('click', () => openModal(btn.getAttribute('data-type')));
   });
 
