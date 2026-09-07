@@ -1,0 +1,77 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, ci-cd-setup, feature/bautow-backend ] # Укажи свои ветки
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # --- ЭТАП 1: СБОРКА ОБРАЗА НА GITHUB ---
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # Токен создается гитхабом автоматически
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  # --- ЭТАП 2: ДЕПЛОЙ НА СЕРВЕР BEGET ---
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # Ждем, пока закончится сборка образа
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }} # Тут должен быть root
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # Твой беспарольный ключ
+          script: |
+            # Создаем папку, если её нет
+            mkdir -p /opt/project
+            
+            # Пишем docker-compose.yml прямо на сервере автоматом
+            cat << 'EOF' > /opt/project/docker-compose.yml
+            version: '3.8'
+            services:
+              api:
+                image: ghcr.io/${{ github.repository }}:latest
+                ports:
+                  - "80:8000"
+                restart: always
+                environment:
+                  - ENV=production
+            EOF
+
+            cd /opt/project
+            
+            # Авторизуем сервер в GitHub Registry, используя системный токен пайплайна
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Скачиваем готовый образ и перезапускаем проект
+            docker compose pull
+            docker compose up -d --force-recreate
+            
+            # Чистим старый докер-мусор
+            docker image prune -f
+
