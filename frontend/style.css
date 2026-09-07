@@ -16,7 +16,7 @@
   --ease: cubic-bezier(.4,0,.2,1);
 }
 :root[data-theme="dark"]{
-  --bg:#171b19; --card:#252a28; --border:#3a4440; --text:#edf2ef; --text-muted:#aeb8b3;
+  --bg:#1f2527; --card:rgb(41, 49, 51); --border:#414b4e; --text:#edf2ef; --text-muted:#aeb8b3;
   --green-light:#203e30; --red-light:#452626; --amber-light:#443a25;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
