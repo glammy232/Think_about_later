@@ -523,7 +523,7 @@
 
   async function hydrateCurrentPage() {
     const path = location.pathname;
-    if (path.endsWith('/index.html') || path.endsWith('/app/')) return hydrateDashboard();
+    if (path.endsWith('/index.html') || path.endsWith('/app/')) return Promise.all([hydrateDashboard(), hydrateAnalytics()]);
     if (path.endsWith('operations.html') || path.endsWith('finances.html')) return hydrateOperations();
     if (path.endsWith('balances.html')) return hydrateBalances();
     if (path.endsWith('analytics.html')) return hydrateAnalytics();
