@@ -102,6 +102,10 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 :root[data-theme="dark"] .ai-suggest button:hover{background:#394345}
 :root[data-theme="dark"] .ai-input{background:#252a28}
 :root[data-theme="dark"] .ai-input input{background:transparent;color:#edf2ef}
+:root[data-theme="dark"] .legend-left,
+:root[data-theme="dark"] .legend-left *{color:#fff!important}
+:root[data-theme="dark"] .see-all{color:#fff;background:#1f6a48}
+:root[data-theme="dark"] .see-all:hover{background:#287d56}
 :root[data-theme="dark"] .notification-items article{border-color:var(--border)}
 .nav-item.active{background: var(--green-light); color: var(--green-dark); font-weight:600;}
 .nav-item:active{transform: scale(.97);}
