@@ -252,7 +252,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 
 /* legend / charts */
 .legend-row{display:grid; grid-template-columns:minmax(0,1fr) 44px 92px; align-items:center; column-gap:10px; font-size:12.5px; padding:5px 0;}
-.legend-dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:8px;}
+.legend-dot{width:9px; height:9px; min-width:9px; min-height:9px; flex:0 0 9px; border-radius:50%; display:inline-block; margin-right:8px;}
 .legend-left{display:flex; align-items:center; color:#4c554f; min-width:0; white-space:nowrap; overflow-x:auto; scrollbar-width:thin;}
 .legend-pct{color:var(--text-muted); text-align:right; white-space:nowrap;}
 .legend-val{font-weight:600; text-align:right; white-space:nowrap;}
