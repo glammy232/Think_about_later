@@ -174,6 +174,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .flip-back .stat-sub{position:absolute;left:0;right:0;bottom:0;display:flex!important;align-items:center;justify-content:space-between;opacity:.75;}
 .flip-back .stat-sub{left:20px;right:20px;bottom:18px;}
 .flip-back .stat-value{position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;}
+.flip-back .stat-value{left:20px;width:calc(100% - 40px);}
 .stat-sub{font-size:12.5px; margin-top:8px; opacity:.75; display:flex; align-items:center; justify-content:space-between;}
 .stat-card.debt-plus .stat-value{color:var(--green);}
 .stat-card.debt-minus .stat-value{color:var(--red);}
