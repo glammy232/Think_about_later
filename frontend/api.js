@@ -267,9 +267,10 @@
   function operationTableRow(operation) {
     const data = operationData(operation);
     const icon = iconFor(data.sub);
+    const typeLabel = operation.type === 'income' ? 'Доход' : operation.type === 'debt' || operation.type === 'repayment' ? 'Возврат долга' : 'Расход';
     return `<tr><td><div style="display:flex;align-items:center;gap:12px">
       <div class="tx-icon" style="background:${icon.bg}"><svg viewBox="0 0 24 24" fill="none" stroke="${icon.color}" stroke-width="2">${icon.path}</svg></div>
-      <div class="tx-info"><b>${escapeHtml(data.title)}</b><span>${escapeHtml(operation.comment || data.sub)}</span></div>
+      <div class="tx-info"><b>${typeLabel}</b></div>
       </div></td><td>${escapeHtml(data.who)}</td><td><span class="tx-tag">${escapeHtml(data.sub)}</span></td>
       <td>${data.date}</td><td style="text-align:right"><b style="${data.income ? 'color:var(--green)' : ''}">${data.income ? '+' : '−'}${money(operation.amount)}</b></td></tr>`;
   }
