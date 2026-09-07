@@ -453,7 +453,6 @@
       const values = keys.map((key) => ({ key, amount: amounts.get(key) || 0 }));
       const max = Math.max(...values.map((item) => item.amount), 0);
       trendPanel?.querySelector('.api-y-axis')?.remove();
-      if (trendPanel && max) trendChart.insertAdjacentHTML('beforebegin', `<div class="api-y-axis"><span>${money(max)}</span><span>${money(max / 2)}</span><span>0 ₽</span></div>`);
       const labels = trendChart.nextElementSibling;
       if (labels) {
         labels.classList.add('api-month-labels');
@@ -475,7 +474,10 @@
         const height = viewBox[3];
         const slot = (width - 20) / values.length;
         const barWidth = Math.max(5, slot * 0.58);
-        const grid = [0, .5, 1].map((ratio) => `<line x1="10" x2="${width - 10}" y1="${height - 15 - ratio * (height - 30)}" y2="${height - 15 - ratio * (height - 30)}" stroke="#e7eeea" stroke-width="1"/>`).join('');
+        const topY = 15;
+        const midY = height / 2;
+        const bottomY = height - 15;
+        const grid = `<g class="trend-grid"><line x1="0" x2="${width}" y1="${topY}" y2="${topY}"/><line x1="0" x2="${width}" y1="${midY}" y2="${midY}"/><line x1="0" x2="${width}" y1="${bottomY}" y2="${bottomY}"/></g><g class="trend-axis-labels"><text x="0" y="${topY - 3}">${escapeHtml(money(max))}</text><text x="0" y="${midY - 3}">${escapeHtml(money(max / 2))}</text><text x="0" y="${bottomY - 3}">0 ₽</text></g>`;
         trendChart.innerHTML = `<defs><linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f9b61"/><stop offset="1" stop-color="#57c58b"/></linearGradient></defs>${grid}` + values.map((item, index) => {
           const barHeight = item.amount ? Math.max(3, item.amount / max * (height - 30)) : 0;
           const x = 10 + index * slot + (slot - barWidth) / 2;
