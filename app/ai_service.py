@@ -221,6 +221,10 @@ class DeepSeekAssistant:
 
     def _budget_status(self, group_id, user_id, period):
         summary = self._expense_summary(group_id, user_id, period)
+        start, _ = _period_dates(period)
+        elapsed_days = (date.today() - start).days + 1
+        if period == "current_month" and elapsed_days < 7:
+            return {"status": "insufficient_data", "reason": "Нужно минимум 7 дней данных", "budget": None, "expenses": summary["expenses"], "remaining": None}
         return {
             "status": "ok",
             "budget": None,
@@ -265,6 +269,9 @@ class DeepSeekAssistant:
 
     def _forecast(self, group_id, user_id, period):
         start, end = _period_dates(period)
+        elapsed_days = (date.today() - start).days + 1
+        if period == "current_month" and elapsed_days < 7:
+            return {"status": "insufficient_data", "reason": "Нужно минимум 7 дней данных", "spent": 0, "forecast": None}
         spent = self._expense_summary(group_id, user_id, period)["expenses"]
         days_elapsed = max((end - start).days + 1, 1)
         days_month = monthrange(end.year, end.month)[1]
