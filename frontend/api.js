@@ -1,13 +1,5 @@
 /* Backend integration for the static hackathon UI. */
 (() => {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.topbar-right .icon-btn:first-child').forEach((bell) => {
-      if (bell.querySelector('.notification-menu')) return;
-      bell.classList.add('notification-trigger');
-      bell.insertAdjacentHTML('beforeend', '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>');
-      bell.addEventListener('click', async (event) => { event.stopPropagation(); bell.classList.toggle('open'); if (bell.classList.contains('open')) { try { const data = await request(`/groups/${GROUP_ID}/notifications`); const body = bell.querySelector('.notification-menu span'); if (body) body.textContent = data.items?.length ? data.items.map((n) => n.message).join(' ') : 'Новых уведомлений нет'; } catch (_) {} } });
-    });
-  }, { once: true });
   // Comments are not part of the simplified transaction flow.
   document.querySelectorAll('#modal-comment, #debt-comment').forEach((el) => el.closest('.field')?.remove());
   document.getElementById('total-expenses-card')?.addEventListener('click', (event) => {
@@ -894,8 +886,20 @@
       document.querySelectorAll('.topbar-right .icon-btn').forEach((item, index) => { if (index > 0) item.remove(); });
       document.querySelectorAll('.topbar-right .icon-btn').forEach((bell) => {
         bell.classList.add('notification-trigger');
-        bell.innerHTML += '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>';
+        bell.insertAdjacentHTML('beforeend', '<span class="notification-badge" aria-label="Новые уведомления"></span><div class="notification-menu"><b>Уведомления</b><div class="notification-items"><span>Новых уведомлений нет</span></div></div>');
         bell.setAttribute('role', 'button');
+        const badge = bell.querySelector('.notification-badge');
+        const items = bell.querySelector('.notification-items');
+        request(`/groups/${GROUP_ID}/notifications`).then((data) => {
+          const notifications = data.items || [];
+          if (badge) badge.hidden = notifications.length === 0;
+          if (items && notifications.length) items.innerHTML = notifications.map((n) => `<article><b>${escapeHtml(n.title || 'Уведомление')}</b><span>${escapeHtml(n.message || '')}</span><time>${new Date(n.created_at).toLocaleString('ru-RU')}</time></article>`).join('');
+        }).catch(() => {});
+        bell.addEventListener('click', (event) => {
+          event.stopPropagation();
+          bell.classList.toggle('open');
+          if (badge) badge.hidden = true;
+        });
       });
       document.addEventListener('click', (event) => {
         const trigger = event.target.closest('.notification-trigger');
