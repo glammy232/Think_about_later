@@ -62,7 +62,7 @@
     } else if (existingGroup && existingUser) {
       fetch(`/api/groups/${encodeURIComponent(existingGroup)}`)
         .then((response) => response.ok ? location.replace('index.html') : Promise.reject())
-        .catch(() => { localStorage.removeItem('krug_group_id'); localStorage.removeItem('krug_user_id'); });
+        .catch(() => { document.getElementById('error').textContent = 'Не удалось проверить группу. Повторите попытку.'; });
     }
     form.addEventListener('submit', async (event) => {
       event.preventDefault();

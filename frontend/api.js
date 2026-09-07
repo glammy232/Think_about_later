@@ -905,13 +905,7 @@
       document.body.dataset.backend = 'connected';
       document.documentElement.classList.remove('api-hydrating');
     } catch (error) {
-      if (String(error.message).includes('Group not found') || String(error.message).includes('not group members')) {
-        localStorage.removeItem('krug_group_id');
-        localStorage.removeItem('krug_user_id');
-        location.replace('onboarding.html');
-      } else {
-        notify(`Backend недоступен: ${error.message}`, true);
-      }
+      notify(`Backend недоступен: ${error.message}`, true);
     }
   });
 })();
