@@ -291,6 +291,13 @@ class DeepSeekAssistant:
             raise ValueError(f"users are not group members: {sorted(invalid)}")
 
     def _store_draft(self, group_id, user_id, kind, payload):
+        # Актуальные правила помощника требуют сохранять ясную операцию сразу.
+        if kind in {"expense", "income"}:
+            self.storage.create_operation(group_id, OperationCreate.model_validate(payload))
+        elif kind == "debt":
+            self.storage.create_direct_debt(group_id, DirectDebtCreate.model_validate(payload))
+        return {"status": "ok", "saved": True, "operation": {"type": kind, **payload}}
+        # Старый draft-код оставлен ниже для совместимости с confirm endpoint.
         action = DraftAction(f"action-{uuid4().hex}", group_id, user_id, kind, payload)
         with assistant_state.lock:
             assistant_state.actions[action.id] = action
