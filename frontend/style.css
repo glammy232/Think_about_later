@@ -222,7 +222,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .ai-msg.me{background:var(--green-light); color:#1c3f2c; align-self:flex-end;}
 .api-ai-messages{display:flex;flex:1;flex-direction:column;gap:12px;overflow-y:auto;padding:16px 8px;min-height:320px;max-height:430px;scroll-behavior:smooth}
 .api-ai-messages{scrollbar-width:none;-ms-overflow-style:none}.api-ai-messages::-webkit-scrollbar{display:none}
-.trend-grid line{stroke:#e7eeea;stroke-width:1}.trend-axis-labels text{fill:var(--text-muted);font-size:10px;text-anchor:start}.panel:has(.api-y-axis) svg{margin-left:0}.panel:has(.api-y-axis) .trend-total{margin-left:0}
+.trend-grid line{stroke:#e7eeea;stroke-width:1}.trend-axis-labels text{fill:var(--text-muted);font-size:10px;text-anchor:start}.panel:has(.api-y-axis) svg{margin-left:0}.panel:has(.api-y-axis) .trend-total{margin-left:0}.trend-total{display:none!important}
 .panel:has(.api-y-axis){position:relative}
 .panel:has(.api-y-axis) .api-month-labels{margin-left:42px;display:flex;justify-content:space-around;color:var(--text-muted);font-size:11px}.panel:has(.api-y-axis) svg{height:170px;width:calc(100% - 42px)}
 .ai-chat>.api-ai-messages{order:1}.ai-chat>.panel-head{order:0}.ai-chat>div:last-child{order:2;margin-top:auto}
