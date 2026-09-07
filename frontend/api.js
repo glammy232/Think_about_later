@@ -114,14 +114,6 @@
     else window.alert(text);
     if (error) console.error(text);
   }
-  document.addEventListener('click', async (event) => {
-    const button = event.target.closest('.debt-settle-action');
-    if (!button || button.disabled) return;
-    if (!window.confirm('Подтвердить погашение долга?')) return;
-    await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body: JSON.stringify({from_user_id: button.dataset.from, to_user_id: button.dataset.to, amount: Number(button.dataset.amount)})});
-    button.disabled = true; button.textContent = 'Долг погашен';
-    await Promise.all([hydrateDebts(), hydrateBalances(), hydrateDashboard()]);
-  });
 
   function iconFor(category) {
     if (typeof window.CATEGORY_ICON !== 'undefined') {
@@ -548,7 +540,7 @@
       const outgoing = item.debtor_id === USER_ID;
       const title = incoming ? `${memberName(item.debtor_id)} должен вам` : outgoing ? `Вы должны ${memberName(item.creditor_id)}` : `${memberName(item.debtor_id)} → ${memberName(item.creditor_id)}`;
       return `<div class="debt-card ${incoming ? 'in' : 'out'}"><div class="dir">${incoming ? '↓' : '↑'}</div>
-        <div class="info"><b>${escapeHtml(title)}</b><span>${escapeHtml(item.description || 'Без комментария')}</span><button class="ghost-btn debt-settle-action" data-from="${item.debtor_id}" data-to="${item.creditor_id}" data-amount="${item.amount}">Долг погашен</button></div>
+        <div class="info"><b>${escapeHtml(title)}</b><span>${escapeHtml(item.description || 'Без комментария')}</span></div>
         <div class="amt">${incoming ? '+' : outgoing ? '−' : ''}${money(item.amount)}</div></div>`;
     }).join('') || '<p style="color:var(--text-muted)">Активных долгов нет</p>';
   }
