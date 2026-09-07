@@ -1,5 +1,7 @@
 /* Backend integration for the static hackathon UI. */
 (() => {
+  // Comments are not part of the simplified transaction flow.
+  document.querySelectorAll('#modal-comment, #debt-comment').forEach((el) => el.closest('.field')?.remove());
   document.documentElement.classList.add('api-hydrating');
   const API = '/api';
   const GROUP_ID = localStorage.getItem('krug_group_id');
