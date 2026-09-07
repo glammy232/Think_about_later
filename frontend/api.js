@@ -543,13 +543,13 @@
     if (!list) return;
     const items = [
       ...data.calculated.map((item) => ({ debtor_id: item.from_user_id, creditor_id: item.to_user_id, amount: item.amount, description: 'Рассчитано по общим расходам' })),
-      ...data.direct.filter((item) => item.status === 'active'),
+      ...data.direct.filter((item) => item.status === 'active').map((item) => ({...item, debt_id:item.id})),
     ];
     list.innerHTML = items.map((item) => {
       const incoming = item.creditor_id === USER_ID;
       const outgoing = item.debtor_id === USER_ID;
       const title = incoming ? `${memberName(item.debtor_id)} должен вам` : outgoing ? `Вы должны ${memberName(item.creditor_id)}` : `${memberName(item.debtor_id)} → ${memberName(item.creditor_id)}`;
-      const action = outgoing ? `<button class="ghost-btn debt-settle-action" data-from="${item.debtor_id}" data-to="${item.creditor_id}" data-amount="${item.amount}">Погасить долг</button>` : '<span class="debt-status">Долг не погашен</span>';
+      const action = outgoing ? `<button class="ghost-btn debt-settle-action" data-debt-id="${item.debt_id || ''}" data-from="${item.debtor_id}" data-to="${item.creditor_id}" data-amount="${item.amount}">Погасить долг</button>` : '<span class="debt-status">Долг не погашен</span>';
       return `<div class="debt-card ${incoming ? 'in' : 'out'}"><div class="dir">${incoming ? '↓' : '↑'}</div>
         <div class="info"><b>${escapeHtml(title)}</b><span>${escapeHtml(item.description || 'Без комментария')}</span>${action}</div>
         <div class="amt">${incoming ? '+' : outgoing ? '−' : ''}${money(item.amount)}</div></div>`;
@@ -871,7 +871,8 @@
     if (!button || button.disabled) return;
     if (!window.confirm('Подтвердить погашение долга?')) return;
     try {
-      await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body:JSON.stringify({from_user_id:button.dataset.from,to_user_id:button.dataset.to,amount:Number(button.dataset.amount)})});
+      if (button.dataset.debtId) await request(`/debts/${button.dataset.debtId}/settle`, {method:'PATCH'});
+      else await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body:JSON.stringify({from_user_id:button.dataset.from,to_user_id:button.dataset.to,amount:Number(button.dataset.amount)})});
       await Promise.all([hydrateDebts(), hydrateBalances(), hydrateDashboard()]);
     } catch (error) { notify(error.message, true); }
   });
