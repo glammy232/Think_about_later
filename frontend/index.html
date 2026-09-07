@@ -251,12 +251,13 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .ai-input .send svg{width:13px;height:13px;}
 
 /* legend / charts */
-.legend-row{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; padding:5px 0;}
+.legend-row{display:grid; grid-template-columns:minmax(0,1fr) 44px 92px; align-items:center; column-gap:10px; font-size:12.5px; padding:5px 0;}
 .legend-dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:8px;}
-.legend-left{display:flex; align-items:center; color:#4c554f;}
-.legend-pct{color:var(--text-muted); width:40px; display:inline-block;}
-.legend-val{font-weight:600; width:70px; text-align:right; display:inline-block;}
+.legend-left{display:flex; align-items:center; color:#4c554f; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.legend-pct{color:var(--text-muted); text-align:right; white-space:nowrap;}
+.legend-val{font-weight:600; text-align:right; white-space:nowrap;}
 .chart-wrap{display:flex; align-items:center; gap:20px;}
+.chart-wrap > div{flex:1; min-width:190px;}
 .trend-total{font-size:20px; font-weight:700; margin-bottom:4px;}
 select{border:1px solid var(--border); border-radius:8px; font-size:12px; padding:6px 10px; background:#fff; cursor:pointer;}
 
