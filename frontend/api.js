@@ -906,6 +906,7 @@
       document.documentElement.classList.remove('api-hydrating');
     } catch (error) {
       notify(`Backend недоступен: ${error.message}`, true);
+      document.documentElement.classList.remove('api-hydrating');
     }
   });
 })();
