@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /opt/project
 
 COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:%PATH
+ENV PATH=/root/.local/bin:$PATH
 
 COPY app ./app
 COPY ai ./ai
