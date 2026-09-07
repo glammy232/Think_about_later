@@ -472,15 +472,16 @@
         const viewBox = (trendChart.getAttribute('viewBox') || '0 0 260 110').split(/\s+/).map(Number);
         const width = viewBox[2];
         const height = viewBox[3];
-        const slot = (width - 20) / values.length;
+        const chartLeft = 70;
+        const slot = (width - chartLeft - 10) / values.length;
         const barWidth = Math.max(5, slot * 0.58);
         const topY = 15;
         const midY = height / 2;
         const bottomY = height - 15;
-        const grid = `<g class="trend-grid"><line x1="0" x2="${width}" y1="${topY}" y2="${topY}"/><line x1="0" x2="${width}" y1="${midY}" y2="${midY}"/><line x1="0" x2="${width}" y1="${bottomY}" y2="${bottomY}"/></g><g class="trend-axis-labels"><text x="0" y="${topY - 3}">${escapeHtml(money(max))}</text><text x="0" y="${midY - 3}">${escapeHtml(money(max / 2))}</text><text x="0" y="${bottomY - 3}">0 ₽</text></g>`;
+        const grid = `<g class="trend-grid"><line x1="${chartLeft}" x2="${width}" y1="${topY}" y2="${topY}"/><line x1="${chartLeft}" x2="${width}" y1="${midY}" y2="${midY}"/><line x1="${chartLeft}" x2="${width}" y1="${bottomY}" y2="${bottomY}"/></g><g class="trend-axis-labels"><text x="0" y="${topY - 3}">${escapeHtml(money(max))}</text><text x="0" y="${midY - 3}">${escapeHtml(money(max / 2))}</text><text x="0" y="${bottomY - 3}">0 ₽</text></g>`;
         trendChart.innerHTML = `<defs><linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f9b61"/><stop offset="1" stop-color="#57c58b"/></linearGradient></defs>${grid}` + values.map((item, index) => {
           const barHeight = item.amount ? Math.max(3, item.amount / max * (height - 30)) : 0;
-          const x = 10 + index * slot + (slot - barWidth) / 2;
+          const x = chartLeft + index * slot + (slot - barWidth) / 2;
           const y = height - 15 - barHeight;
           return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="${Math.min(4, barWidth / 4)}" fill="url(#barGradient)" opacity="${item.amount ? 1 : .25}"><title>${escapeHtml(monthGenitive[Number(item.key.slice(5)) - 1])}: ${money(item.amount)}</title></rect>`;
         }).join('');
