@@ -362,17 +362,19 @@
       if (moreButton) moreButton.insertAdjacentHTML('beforebegin', rows);
       else balancePanel.insertAdjacentHTML('beforeend', rows);
     }
+    const groupIncome = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
+    const groupExpenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
+    const groupTotal = groupIncome - groupExpenses;
+    const totalValue = document.getElementById('group-total-value');
+    if (totalValue) totalValue.textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
+    const monthLabel = document.getElementById('group-total-month');
+    if (monthLabel) monthLabel.firstChild.textContent = `за ${monthGenitive[new Date().getMonth()]}`;
     if (location.pathname.endsWith('balances.html')) {
       const incoming = data.recommended_transfers.filter((item) => item.to_user_id === USER_ID);
       const outgoing = data.recommended_transfers.filter((item) => item.from_user_id === USER_ID);
       const values = document.querySelectorAll('.stats .stat-value');
       const incomingTotal = incoming.reduce((sum, item) => sum + item.amount, 0);
       const outgoingTotal = outgoing.reduce((sum, item) => sum + item.amount, 0);
-      const groupIncome = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
-      const groupExpenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
-      const groupTotal = groupIncome - groupExpenses;
-      const totalValue = document.getElementById('group-total-value');
-      if (totalValue) totalValue.textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
       if (values[0]) values[0].textContent = money(incomingTotal);
       if (values[1]) values[1].textContent = money(outgoingTotal);
       if (values[2]) values[2].textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
