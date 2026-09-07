@@ -15,7 +15,8 @@
     const card = event.currentTarget;
     card.dataset.flipped = card.dataset.flipped === 'true' ? 'false' : 'true';
   });
-  document.getElementById('settle-debt-btn')?.addEventListener('click', async () => {
+  /* debt settlement UI intentionally disabled while the flow is redesigned */
+  /* document.getElementById('settle-debt-btn')?.addEventListener('click', async () => {
     const data = await request(`/groups/${GROUP_ID}/debts`);
     const debts = data.calculated || [];
     if (!debts.length) return notify('Активных долгов нет');
@@ -28,7 +29,7 @@
     await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body: JSON.stringify({from_user_id: debt.from_user_id, to_user_id: debt.to_user_id, amount})});
     notify('Погашение записано в операции');
     await Promise.all([hydrateDebts(), hydrateBalances(), hydrateDashboard()]);
-  });
+  }); */
   document.documentElement.classList.add('api-hydrating');
   const API = '/api';
   const GROUP_ID = localStorage.getItem('krug_group_id');
@@ -417,13 +418,14 @@
       transfersPanel.innerHTML = '<div class="panel-head"><h3>Рекомендованные переводы</h3></div>'
         + (data.recommended_transfers.map((item) => `<div class="bal-row"><div class="bal-avatar">↗</div>
           <div class="bal-name"><b>${escapeHtml(item.from_user_name)} → ${escapeHtml(item.to_user_name)}</b><span>Для сведения общего баланса</span></div>
-          <div class="bal-amount">${money(item.amount)}</div>${item.from_user_id === USER_ID ? `<button class="primary-btn api-pay" data-to="${escapeHtml(item.to_user_id)}" data-amount="${item.amount}">Отметить перевод</button>` : ''}</div>`).join('') || '<p>Все расчёты закрыты</p>');
-      transfersPanel.querySelectorAll('.api-pay').forEach((button) => button.addEventListener('click', async () => {
+          <div class="bal-amount">${money(item.amount)}</div></div>`).join('') || '<p>Все расчёты закрыты</p>');
+      /* payment actions removed */
+      /* transfersPanel.querySelectorAll('.api-pay').forEach((button) => button.addEventListener('click', async () => {
         try {
           await request(`/groups/${GROUP_ID}/payments`, { method: 'POST', body: JSON.stringify({ from_user_id: USER_ID, to_user_id: button.dataset.to, amount: Number(button.dataset.amount), comment: 'Отмечено во frontend' }) });
           notify('Перевод учтён'); await Promise.all([hydrateBalances(), hydrateDashboard(), hydrateDebts()]);
         } catch (error) { notify(error.message, true); }
-      }));
+      })); */
     }
     return data;
   }
