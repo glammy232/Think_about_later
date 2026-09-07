@@ -349,7 +349,8 @@
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Балансы участников'));
     if (balancePanel) {
       balancePanel.querySelectorAll('.bal-row').forEach((row) => row.remove());
-      balancePanel.insertAdjacentHTML('beforeend', balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>');
+      const moreButton = balancePanel.querySelector('a[href="balances.html"]');
+      (moreButton || balancePanel).insertAdjacentHTML('beforebegin', balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>');
     }
     if (location.pathname.endsWith('balances.html')) {
       const incoming = data.recommended_transfers.filter((item) => item.to_user_id === USER_ID);
@@ -526,7 +527,7 @@
 
   async function hydrateCurrentPage() {
     const path = location.pathname;
-    if (path.endsWith('/index.html') || path.endsWith('/app/')) return Promise.all([hydrateDashboard(), hydrateAnalytics()]);
+    if (path.endsWith('/index.html') || path.endsWith('/app/')) return Promise.all([hydrateDashboard(), hydrateBalances(), hydrateAnalytics()]);
     if (path.endsWith('operations.html') || path.endsWith('finances.html')) return hydrateOperations();
     if (path.endsWith('balances.html')) return hydrateBalances();
     if (path.endsWith('analytics.html')) return hydrateAnalytics();
