@@ -484,7 +484,7 @@
           const x = chartLeft + index * slot + (slot - barWidth) / 2;
           const y = height - 15 - barHeight;
           return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="${Math.min(4, barWidth / 4)}" fill="url(#barGradient)" opacity="${item.amount ? 1 : .25}"><title>${escapeHtml(monthGenitive[Number(item.key.slice(5)) - 1])}: ${money(item.amount)}</title></rect>`;
-        }).join('');
+        }).join('') + `<g class="trend-month-labels">${values.map((item, index) => { const month = Number(item.key.slice(5)); const x = chartLeft + index * slot + slot / 2; return `<text x="${x}" y="${height + 8}">${escapeHtml(monthGenitive[month - 1].slice(0, 3))}</text>`; }).join('')}</g>`;
       }
     }
     const userPanel = [...document.querySelectorAll('.panel')]
