@@ -7,6 +7,20 @@
     const card = event.currentTarget;
     card.dataset.flipped = card.dataset.flipped === 'true' ? 'false' : 'true';
   });
+  document.getElementById('settle-debt-btn')?.addEventListener('click', async () => {
+    const data = await request(`/groups/${GROUP_ID}/debts`);
+    const debts = data.calculated || [];
+    if (!debts.length) return notify('Активных долгов нет');
+    const options = debts.map((d, i) => `${i + 1}. ${d.from_user_name} → ${d.to_user_name}: ${money(d.amount)}`).join('\n');
+    const choice = Number(prompt(`Выберите долг для погашения:\n${options}`)) - 1;
+    const debt = debts[choice];
+    if (!debt) return;
+    const amount = Number(prompt(`Сумма погашения (до ${money(debt.amount)}):`, debt.amount));
+    if (!amount || amount <= 0 || amount > debt.amount) return notify('Некорректная сумма');
+    await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body: JSON.stringify({from_user_id: debt.from_user_id, to_user_id: debt.to_user_id, amount})});
+    notify('Погашение записано в операции');
+    await Promise.all([hydrateDebts(), hydrateBalances(), hydrateDashboard()]);
+  });
   document.documentElement.classList.add('api-hydrating');
   const API = '/api';
   const GROUP_ID = localStorage.getItem('krug_group_id');
