@@ -549,8 +549,9 @@
       const incoming = item.creditor_id === USER_ID;
       const outgoing = item.debtor_id === USER_ID;
       const title = incoming ? `${memberName(item.debtor_id)} должен вам` : outgoing ? `Вы должны ${memberName(item.creditor_id)}` : `${memberName(item.debtor_id)} → ${memberName(item.creditor_id)}`;
+      const action = outgoing ? `<button class="ghost-btn debt-settle-action" data-from="${item.debtor_id}" data-to="${item.creditor_id}" data-amount="${item.amount}">Погасить долг</button>` : '<span class="debt-status">Долг не погашен</span>';
       return `<div class="debt-card ${incoming ? 'in' : 'out'}"><div class="dir">${incoming ? '↓' : '↑'}</div>
-        <div class="info"><b>${escapeHtml(title)}</b><span>${escapeHtml(item.description || 'Без комментария')}</span></div>
+        <div class="info"><b>${escapeHtml(title)}</b><span>${escapeHtml(item.description || 'Без комментария')}</span>${action}</div>
         <div class="amt">${incoming ? '+' : outgoing ? '−' : ''}${money(item.amount)}</div></div>`;
     }).join('') || '<p style="color:var(--text-muted)">Активных долгов нет</p>';
   }
@@ -865,6 +866,15 @@
     if (event.target.id === 'modal-form') submitOperation(event);
     if (event.target.id === 'debt-form') submitDebt(event);
   }, true);
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('.debt-settle-action');
+    if (!button || button.disabled) return;
+    if (!window.confirm('Подтвердить погашение долга?')) return;
+    try {
+      await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body:JSON.stringify({from_user_id:button.dataset.from,to_user_id:button.dataset.to,amount:Number(button.dataset.amount)})});
+      await Promise.all([hydrateDebts(), hydrateBalances(), hydrateDashboard()]);
+    } catch (error) { notify(error.message, true); }
+  });
 
   document.addEventListener('DOMContentLoaded', async () => {
     try {
