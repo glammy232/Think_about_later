@@ -291,6 +291,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
 .debt-card .info b{font-size:13.5px; display:block;}
 .debt-card .info span{font-size:12px; color:var(--text-muted);}
 .debt-card .amt{font-size:14px; font-weight:700; margin-right:10px;}
+.debt-settle-action{margin-top:8px;padding:6px 10px;font-size:11px}.debt-status{display:block;margin-top:8px;color:var(--text-muted);font-size:11px}
 .debt-card.in .amt{color:var(--green);}
 .debt-card.out .amt{color:var(--red);}
 
@@ -494,10 +495,11 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           <h1>Задолженности</h1>
           <p>Незакрытые долги между участниками квартиры</p>
         </div>
-        <button class="primary-btn compact-action" data-clickable data-open-debt-modal="in">
+        <div class="page-actions"><button class="primary-btn compact-action" data-clickable data-open-debt-modal="in">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           Добавить долг
         </button>
+        </div>
       </div>
 
       <div class="panel" style="display:flex; flex-direction:column; gap:10px;">

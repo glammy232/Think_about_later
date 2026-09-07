@@ -1,5 +1,35 @@
 /* Backend integration for the static hackathon UI. */
 (() => {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.topbar-right .icon-btn:first-child').forEach((bell) => {
+      if (bell.querySelector('.notification-menu')) return;
+      bell.classList.add('notification-trigger');
+      bell.insertAdjacentHTML('beforeend', '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>');
+      bell.addEventListener('click', async (event) => { event.stopPropagation(); bell.classList.toggle('open'); if (bell.classList.contains('open')) { try { const data = await request(`/groups/${GROUP_ID}/notifications`); const body = bell.querySelector('.notification-menu span'); if (body) body.textContent = data.items?.length ? data.items.map((n) => n.message).join(' ') : 'Новых уведомлений нет'; } catch (_) {} } });
+    });
+  }, { once: true });
+  // Comments are not part of the simplified transaction flow.
+  document.querySelectorAll('#modal-comment, #debt-comment').forEach((el) => el.closest('.field')?.remove());
+  document.getElementById('total-expenses-card')?.addEventListener('click', (event) => {
+    if (event.target.closest('a,button,select')) return;
+    const card = event.currentTarget;
+    card.dataset.flipped = card.dataset.flipped === 'true' ? 'false' : 'true';
+  });
+  /* debt settlement UI intentionally disabled while the flow is redesigned */
+  /* document.getElementById('settle-debt-btn')?.addEventListener('click', async () => {
+    const data = await request(`/groups/${GROUP_ID}/debts`);
+    const debts = data.calculated || [];
+    if (!debts.length) return notify('Активных долгов нет');
+    const options = debts.map((d, i) => `${i + 1}. ${d.from_user_name} → ${d.to_user_name}: ${money(d.amount)}`).join('\n');
+    const choice = Number(prompt(`Выберите долг для погашения:\n${options}`)) - 1;
+    const debt = debts[choice];
+    if (!debt) return;
+    const amount = Number(prompt(`Сумма погашения (до ${money(debt.amount)}):`, debt.amount));
+    if (!amount || amount <= 0 || amount > debt.amount) return notify('Некорректная сумма');
+    await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body: JSON.stringify({from_user_id: debt.from_user_id, to_user_id: debt.to_user_id, amount})});
+    notify('Погашение записано в операции');
+    await Promise.all([hydrateDebts(), hydrateBalances(), hydrateDashboard()]);
+  }); */
   document.documentElement.classList.add('api-hydrating');
   const API = '/api';
   const GROUP_ID = localStorage.getItem('krug_group_id');
@@ -62,7 +92,7 @@
 
   async function request(path, options = {}) {
     const cacheKey = `${options.method || 'GET'}:${path}`;
-    if (!options.method || options.method === 'GET') {
+    if ((!options.method || options.method === 'GET') && !options.noCache) {
       if (apiCache.has(cacheKey)) return apiCache.get(cacheKey);
       try { const saved = localStorage.getItem(cachePrefix + cacheKey); if (saved) { const value = JSON.parse(saved); apiCache.set(cacheKey, value); return value; } } catch (_) {}
     }
@@ -83,7 +113,7 @@
       throw new Error(detail);
     }
     const result = response.status === 204 ? null : await response.json();
-    if (!options.method || options.method === 'GET') { apiCache.set(cacheKey, result); try { localStorage.setItem(cachePrefix + cacheKey, JSON.stringify(result)); } catch (_) {} }
+    if ((!options.method || options.method === 'GET') && !options.noCache) { apiCache.set(cacheKey, result); try { localStorage.setItem(cachePrefix + cacheKey, JSON.stringify(result)); } catch (_) {} }
     else { apiCache.clear(); Object.keys(localStorage).filter((key) => key.startsWith(cachePrefix)).forEach((key) => localStorage.removeItem(key)); }
     return result;
   }
@@ -104,7 +134,7 @@
   async function loadContext() {
     [state.group, state.members] = await Promise.all([
       request(`/groups/${GROUP_ID}`),
-      request(`/groups/${GROUP_ID}/members`),
+      request(`/groups/${GROUP_ID}/members`, { noCache: true }),
     ]);
     const avatarColors = ['#f6cf8e', '#f0b7b0', '#a9d3e5', '#cfe8d7', '#ded1ef', '#f2d5aa'];
     document.querySelectorAll('.household .avatars').forEach((avatars) => {
@@ -265,9 +295,10 @@
   function operationTableRow(operation) {
     const data = operationData(operation);
     const icon = iconFor(data.sub);
+    const typeLabel = operation.type === 'income' ? 'Доход' : operation.type === 'debt' || operation.type === 'repayment' ? 'Возврат долга' : 'Расход';
     return `<tr><td><div style="display:flex;align-items:center;gap:12px">
       <div class="tx-icon" style="background:${icon.bg}"><svg viewBox="0 0 24 24" fill="none" stroke="${icon.color}" stroke-width="2">${icon.path}</svg></div>
-      <div class="tx-info"><b>${escapeHtml(data.title)}</b><span>${escapeHtml(operation.comment || data.sub)}</span></div>
+      <div class="tx-info"><b>${typeLabel}</b></div>
       </div></td><td>${escapeHtml(data.who)}</td><td><span class="tx-tag">${escapeHtml(data.sub)}</span></td>
       <td>${data.date}</td><td style="text-align:right"><b style="${data.income ? 'color:var(--green)' : ''}">${data.income ? '+' : '−'}${money(operation.amount)}</b></td></tr>`;
   }
@@ -349,17 +380,27 @@
       .find((panel) => panel.querySelector('.panel-head h3')?.textContent.includes('Балансы участников'));
     if (balancePanel) {
       balancePanel.querySelectorAll('.bal-row').forEach((row) => row.remove());
-      balancePanel.insertAdjacentHTML('beforeend', balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>');
+      const moreButton = balancePanel.querySelector('a[href="balances.html"]');
+      const rows = balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>';
+      if (moreButton) moreButton.insertAdjacentHTML('beforebegin', rows);
+      else balancePanel.insertAdjacentHTML('beforeend', rows);
     }
+    const groupIncome = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
+    const groupExpenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
+    const groupTotal = groupIncome - groupExpenses;
+    const totalValue = document.getElementById('group-total-value');
+    if (totalValue) totalValue.textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
+    const monthLabel = document.getElementById('group-total-month');
+    const currentMonth = monthGenitive[new Date().getMonth()];
+    if (monthLabel) monthLabel.innerHTML = `за ${currentMonth} <span class="flip-card-icon">↗</span>`;
+    const expensesMonth = document.getElementById('total-expenses-month');
+    if (expensesMonth) expensesMonth.firstChild.textContent = `за ${currentMonth} `;
     if (location.pathname.endsWith('balances.html')) {
       const incoming = data.recommended_transfers.filter((item) => item.to_user_id === USER_ID);
       const outgoing = data.recommended_transfers.filter((item) => item.from_user_id === USER_ID);
       const values = document.querySelectorAll('.stats .stat-value');
       const incomingTotal = incoming.reduce((sum, item) => sum + item.amount, 0);
       const outgoingTotal = outgoing.reduce((sum, item) => sum + item.amount, 0);
-      const groupIncome = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
-      const groupExpenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
-      const groupTotal = groupIncome - groupExpenses;
       if (values[0]) values[0].textContent = money(incomingTotal);
       if (values[1]) values[1].textContent = money(outgoingTotal);
       if (values[2]) values[2].textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
@@ -377,13 +418,14 @@
       transfersPanel.innerHTML = '<div class="panel-head"><h3>Рекомендованные переводы</h3></div>'
         + (data.recommended_transfers.map((item) => `<div class="bal-row"><div class="bal-avatar">↗</div>
           <div class="bal-name"><b>${escapeHtml(item.from_user_name)} → ${escapeHtml(item.to_user_name)}</b><span>Для сведения общего баланса</span></div>
-          <div class="bal-amount">${money(item.amount)}</div>${item.from_user_id === USER_ID ? `<button class="primary-btn api-pay" data-to="${escapeHtml(item.to_user_id)}" data-amount="${item.amount}">Отметить перевод</button>` : ''}</div>`).join('') || '<p>Все расчёты закрыты</p>');
-      transfersPanel.querySelectorAll('.api-pay').forEach((button) => button.addEventListener('click', async () => {
+          <div class="bal-amount">${money(item.amount)}</div></div>`).join('') || '<p>Все расчёты закрыты</p>');
+      /* payment actions removed */
+      /* transfersPanel.querySelectorAll('.api-pay').forEach((button) => button.addEventListener('click', async () => {
         try {
           await request(`/groups/${GROUP_ID}/payments`, { method: 'POST', body: JSON.stringify({ from_user_id: USER_ID, to_user_id: button.dataset.to, amount: Number(button.dataset.amount), comment: 'Отмечено во frontend' }) });
           notify('Перевод учтён'); await Promise.all([hydrateBalances(), hydrateDashboard(), hydrateDebts()]);
         } catch (error) { notify(error.message, true); }
-      }));
+      })); */
     }
     return data;
   }
@@ -453,7 +495,6 @@
       const values = keys.map((key) => ({ key, amount: amounts.get(key) || 0 }));
       const max = Math.max(...values.map((item) => item.amount), 0);
       trendPanel?.querySelector('.api-y-axis')?.remove();
-      if (trendPanel && max) trendChart.insertAdjacentHTML('beforebegin', `<div class="api-y-axis"><span>${money(max)}</span><span>${money(max / 2)}</span><span>0 ₽</span></div>`);
       const labels = trendChart.nextElementSibling;
       if (labels) {
         labels.classList.add('api-month-labels');
@@ -473,15 +514,19 @@
         const viewBox = (trendChart.getAttribute('viewBox') || '0 0 260 110').split(/\s+/).map(Number);
         const width = viewBox[2];
         const height = viewBox[3];
-        const slot = (width - 20) / values.length;
+        const chartLeft = 70;
+        const slot = (width - chartLeft - 10) / values.length;
         const barWidth = Math.max(5, slot * 0.58);
-        const grid = [0, .5, 1].map((ratio) => `<line x1="10" x2="${width - 10}" y1="${height - 15 - ratio * (height - 30)}" y2="${height - 15 - ratio * (height - 30)}" stroke="#e7eeea" stroke-width="1"/>`).join('');
+        const topY = 15;
+        const midY = height / 2;
+        const bottomY = height - 15;
+        const grid = `<g class="trend-grid"><line x1="${chartLeft}" x2="${width}" y1="${topY}" y2="${topY}"/><line x1="${chartLeft}" x2="${width}" y1="${midY}" y2="${midY}"/><line x1="${chartLeft}" x2="${width}" y1="${bottomY}" y2="${bottomY}"/></g><g class="trend-axis-labels"><text x="0" y="${topY + 5}" style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:10px;font-weight:400">${escapeHtml(money(max))}</text><text x="0" y="${midY + 5}" style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:10px;font-weight:400">${escapeHtml(money(max / 2))}</text><text x="0" y="${bottomY + 5}" style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:10px;font-weight:400">0 ₽</text></g>`;
         trendChart.innerHTML = `<defs><linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f9b61"/><stop offset="1" stop-color="#57c58b"/></linearGradient></defs>${grid}` + values.map((item, index) => {
           const barHeight = item.amount ? Math.max(3, item.amount / max * (height - 30)) : 0;
-          const x = 10 + index * slot + (slot - barWidth) / 2;
+          const x = chartLeft + index * slot + (slot - barWidth) / 2;
           const y = height - 15 - barHeight;
           return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="${Math.min(4, barWidth / 4)}" fill="url(#barGradient)" opacity="${item.amount ? 1 : .25}"><title>${escapeHtml(monthGenitive[Number(item.key.slice(5)) - 1])}: ${money(item.amount)}</title></rect>`;
-        }).join('');
+        }).join('') + `<g class="trend-month-labels">${values.map((item, index) => { const month = Number(item.key.slice(5)); const x = chartLeft + index * slot + slot / 2; return `<text x="${x}" y="${height - 2}">${escapeHtml(monthGenitive[month - 1].slice(0, 3))}</text>`; }).join('')}</g>`;
       }
     }
     const userPanel = [...document.querySelectorAll('.panel')]
@@ -498,14 +543,15 @@
     if (!list) return;
     const items = [
       ...data.calculated.map((item) => ({ debtor_id: item.from_user_id, creditor_id: item.to_user_id, amount: item.amount, description: 'Рассчитано по общим расходам' })),
-      ...data.direct.filter((item) => item.status === 'active'),
+      ...data.direct.filter((item) => item.status === 'active').map((item) => ({...item, debt_id:item.id})),
     ];
     list.innerHTML = items.map((item) => {
       const incoming = item.creditor_id === USER_ID;
       const outgoing = item.debtor_id === USER_ID;
       const title = incoming ? `${memberName(item.debtor_id)} должен вам` : outgoing ? `Вы должны ${memberName(item.creditor_id)}` : `${memberName(item.debtor_id)} → ${memberName(item.creditor_id)}`;
+      const action = outgoing ? `<button class="ghost-btn debt-settle-action" data-debt-id="${item.debt_id || ''}" data-from="${item.debtor_id}" data-to="${item.creditor_id}" data-amount="${item.amount}">Погасить долг</button>` : '<span class="debt-status">Долг не погашен</span>';
       return `<div class="debt-card ${incoming ? 'in' : 'out'}"><div class="dir">${incoming ? '↓' : '↑'}</div>
-        <div class="info"><b>${escapeHtml(title)}</b><span>${escapeHtml(item.description || 'Без комментария')}</span></div>
+        <div class="info"><b>${escapeHtml(title)}</b><span>${escapeHtml(item.description || 'Без комментария')}</span>${action}</div>
         <div class="amt">${incoming ? '+' : outgoing ? '−' : ''}${money(item.amount)}</div></div>`;
     }).join('') || '<p style="color:var(--text-muted)">Активных долгов нет</p>';
   }
@@ -523,7 +569,7 @@
 
   async function hydrateCurrentPage() {
     const path = location.pathname;
-    if (path.endsWith('/index.html') || path.endsWith('/app/')) return hydrateDashboard();
+    if (path.endsWith('/index.html') || path.endsWith('/app/')) return Promise.all([hydrateDashboard(), hydrateBalances(), hydrateAnalytics()]);
     if (path.endsWith('operations.html') || path.endsWith('finances.html')) return hydrateOperations();
     if (path.endsWith('balances.html')) return hydrateBalances();
     if (path.endsWith('analytics.html')) return hydrateAnalytics();
@@ -820,6 +866,16 @@
     if (event.target.id === 'modal-form') submitOperation(event);
     if (event.target.id === 'debt-form') submitDebt(event);
   }, true);
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('.debt-settle-action');
+    if (!button || button.disabled) return;
+    if (!window.confirm('Подтвердить погашение долга?')) return;
+    try {
+      if (button.dataset.debtId) await request(`/debts/${button.dataset.debtId}/settle`, {method:'PATCH'});
+      else await request(`/groups/${GROUP_ID}/payments`, {method:'POST', body:JSON.stringify({from_user_id:button.dataset.from,to_user_id:button.dataset.to,amount:Number(button.dataset.amount)})});
+      await Promise.all([hydrateDebts(), hydrateBalances(), hydrateDashboard()]);
+    } catch (error) { notify(error.message, true); }
+  });
 
   document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -833,7 +889,17 @@
       bindOperationFilters();
       await bindSettings();
       bindAiChat(); bindReceipt();
-      document.querySelectorAll('.topbar-right .icon-btn').forEach((item) => item.remove());
+      document.querySelectorAll('.topbar-right .icon-btn').forEach((item, index) => { if (index > 0) item.remove(); });
+      document.querySelectorAll('.topbar-right .icon-btn').forEach((bell) => {
+        bell.classList.add('notification-trigger');
+        bell.innerHTML += '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>';
+        bell.setAttribute('role', 'button');
+      });
+      document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('.notification-trigger');
+        document.querySelectorAll('.notification-trigger.open').forEach((el) => { if (el !== trigger) el.classList.remove('open'); });
+        if (trigger) { event.stopPropagation(); trigger.classList.toggle('open'); }
+      });
       const profileName = document.getElementById('api-user-name');
       if (profileName && !profileName.value) profileName.value = state.members.find((member) => member.id === USER_ID)?.name || 'Алексей';
       document.body.dataset.backend = 'connected';

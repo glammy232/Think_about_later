@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, File, HTTPException, Query, Response, UploadFile, status
@@ -39,6 +40,7 @@ from app.services import (
 )
 from app.storage import storage
 from app.receipt_scanner import parse_receipt_qr_image, scan_receipt_image
+from app.notifications import check_group, list_notifications, _emit
 from starlette.concurrency import run_in_threadpool
 
 app = FastAPI(
@@ -96,6 +98,17 @@ def health():
         "storage": storage.__class__.__name__,
         "ai": "configured" if DeepSeekAssistant.configured() else "not_configured",
     }
+
+@app.get("/api/groups/{group_id}/notifications", tags=["notifications"])
+def get_notifications(group_id: str, user_id: str = Depends(current_user_id)):
+    require_group(group_id); check_group(storage, group_id, user_id)
+    return {"items": list_notifications(group_id, user_id)}
+
+@app.post("/api/groups/{group_id}/notifications/test", tags=["notifications"])
+def send_test_notification(group_id: str, user_id: str = Depends(current_user_id)):
+    require_group(group_id)
+    _emit((group_id, user_id, "test", datetime.now().isoformat()), group_id, user_id, "test", "Тестовое уведомление", "Это тестовое уведомление от финансового помощника.")
+    return {"status": "sent"}
 
 
 @app.get("/api/groups/{group_id}", tags=["groups"])
