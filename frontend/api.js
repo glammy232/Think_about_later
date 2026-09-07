@@ -24,6 +24,11 @@
   }); */
   document.documentElement.classList.add('api-hydrating');
   const API = '/api';
+  const applyTheme = (dark) => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    localStorage.setItem('krug_theme', dark ? 'dark' : 'light');
+  };
+  applyTheme(localStorage.getItem('krug_theme') === 'dark');
   const GROUP_ID = localStorage.getItem('krug_group_id');
   const USER_ID = localStorage.getItem('krug_user_id');
   if (!GROUP_ID || !USER_ID) {
@@ -817,6 +822,11 @@
     const subtitle = document.querySelector('.page-head p');
     if (subtitle) subtitle.textContent = 'Название группы и профиль';
     const save = document.createElement('button'); save.className = 'primary-btn'; save.textContent = 'Сохранить настройки'; apartment?.appendChild(save);
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.checked = document.documentElement.dataset.theme === 'dark';
+      themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked));
+    }
     save.addEventListener('click', async () => {
       try {
         await Promise.all([

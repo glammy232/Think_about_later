@@ -15,6 +15,10 @@
   --sidebar-w: 240px;
   --ease: cubic-bezier(.4,0,.2,1);
 }
+:root[data-theme="dark"]{
+  --bg:#121715; --card:#1b2420; --border:#2d3a34; --text:#edf4ef; --text-muted:#9eaba4;
+  --green-light:#203e30; --red-light:#452626; --amber-light:#443a25;
+}
 *{box-sizing:border-box; margin:0; padding:0;}
 body{
   font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -61,6 +65,19 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .nav-item .ico{width:18px; height:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition: transform .22s var(--ease);}
 .nav-item .ico svg{width:18px; height:18px; stroke:currentColor; transition: stroke .22s var(--ease);}
 .nav-item:hover{background:#f1f4f2;}
+:root[data-theme="dark"] .nav-item{color:#c4d0c9}
+:root[data-theme="dark"] .nav-item:hover{background:#26322c}
+:root[data-theme="dark"] .ai-promo{background:linear-gradient(180deg,#1d3227,#1b2d24);border-color:#31523f}
+:root[data-theme="dark"] .ai-promo p{color:#b1beb7}
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea{background:#202a25;color:var(--text);border-color:var(--border)}
+:root[data-theme="dark"] .modal,
+:root[data-theme="dark"] .notification-menu,
+:root[data-theme="dark"] .api-profile-menu,
+:root[data-theme="dark"] .api-members-menu{background:#1b2420;color:var(--text);border-color:var(--border)}
+:root[data-theme="dark"] .api-ai-draft{background:#202a25;border-color:var(--border)}
+:root[data-theme="dark"] .notification-items article{border-color:var(--border)}
 .nav-item.active{background: var(--green-light); color: var(--green-dark); font-weight:600;}
 .nav-item:active{transform: scale(.97);}
 .nav-item.pulse .ico{animation: icoPop .32s var(--ease);}
