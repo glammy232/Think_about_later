@@ -260,8 +260,22 @@ def get_balances(group_id: str):
 @app.get("/api/groups/{group_id}/debts", tags=["debts"])
 def get_debts(group_id: str):
     require_group(group_id)
+    calculated = simplify_transfers(storage, group_id)
+    # Keep a history row for calculated debts after a settlement. The active
+    # transfer disappears from the balance calculation, so expose the payment
+    # as a settled debt card instead of losing it from the debt screen.
+    settled_calculated = [
+        {
+            "from_user_id": payment.from_user_id,
+            "to_user_id": payment.to_user_id,
+            "amount": payment.amount,
+            "description": "Рассчитано по общим расходам",
+            "status": "settled",
+        }
+        for payment in storage.list_payments(group_id)
+    ]
     return {
-        "calculated": simplify_transfers(storage, group_id),
+        "calculated": [*calculated, *settled_calculated],
         "direct": storage.list_direct_debts(group_id),
     }
 

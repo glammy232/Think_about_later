@@ -542,7 +542,7 @@
     const list = document.getElementById('debt-list');
     if (!list) return;
     const items = [
-      ...data.calculated.map((item) => ({ debtor_id: item.from_user_id, creditor_id: item.to_user_id, amount: item.amount, description: 'Рассчитано по общим расходам' })),
+      ...data.calculated.map((item) => ({ ...item, debtor_id: item.from_user_id, creditor_id: item.to_user_id, amount: item.amount, description: item.description || 'Рассчитано по общим расходам' })),
       // Keep settled direct debts in the list so their history remains visible.
       ...data.direct.map((item) => ({...item, debt_id:item.id})),
     ];
