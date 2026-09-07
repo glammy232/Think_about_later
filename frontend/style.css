@@ -67,6 +67,12 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .nav-item:hover{background:#f1f4f2;}
 :root[data-theme="dark"] .nav-item{color:#c4d0c9}
 :root[data-theme="dark"] .nav-item:hover{background:#26322c}
+:root[data-theme="dark"] .icon-btn:hover{background:#30383a}
+:root[data-theme="dark"] .household .avatars span{background:#3a4548!important;border-color:var(--card);color:#d1d9d5}
+:root[data-theme="dark"] .user-chip .av,
+:root[data-theme="dark"] .api-profile-avatar,
+:root[data-theme="dark"] .member-avatar,
+:root[data-theme="dark"] .bal-avatar{background:#3a4548;color:#d1d9d5}
 :root[data-theme="dark"] .topbar,
 :root[data-theme="dark"] .sidebar,
 :root[data-theme="dark"] .panel,
