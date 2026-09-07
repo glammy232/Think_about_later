@@ -872,9 +872,13 @@
       document.querySelectorAll('.topbar-right .icon-btn').forEach((bell) => {
         bell.classList.add('notification-trigger');
         bell.innerHTML += '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>';
-        bell.addEventListener('click', (event) => { event.stopPropagation(); bell.classList.toggle('open'); });
+        bell.setAttribute('role', 'button');
       });
-      document.addEventListener('click', () => document.querySelectorAll('.notification-trigger.open').forEach((el) => el.classList.remove('open')));
+      document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('.notification-trigger');
+        document.querySelectorAll('.notification-trigger.open').forEach((el) => { if (el !== trigger) el.classList.remove('open'); });
+        if (trigger) { event.stopPropagation(); trigger.classList.toggle('open'); }
+      });
       const profileName = document.getElementById('api-user-name');
       if (profileName && !profileName.value) profileName.value = state.members.find((member) => member.id === USER_ID)?.name || 'Алексей';
       document.body.dataset.backend = 'connected';
