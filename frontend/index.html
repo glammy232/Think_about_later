@@ -502,12 +502,10 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
 
     <div class="content">
       <section class="stats">
-        <div class="stat-card primary">
-          <div class="stat-label">Общие расходы</div>
-          <div class="stat-value">0 ₽</div>
-          <div class="stat-sub">за апрель
+        <div class="stat-card primary flip-card" id="total-expenses-card" data-flipped="false">
+          <div class="flip-face flip-front"><div class="stat-label">Общие расходы</div><div class="stat-value">0 ₽</div><div class="stat-sub">за апрель
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-          </div>
+          </div></div><div class="flip-face flip-back"><div class="stat-label">Итог по квартире</div><div class="stat-value" id="group-total-value">0 ₽</div><div class="stat-sub">баланс группы</div></div>
         </div>
         <div class="stat-card">
           <div class="stat-label" style="color:var(--text-muted)">Вы потратили</div>

@@ -2,6 +2,11 @@
 (() => {
   // Comments are not part of the simplified transaction flow.
   document.querySelectorAll('#modal-comment, #debt-comment').forEach((el) => el.closest('.field')?.remove());
+  document.getElementById('total-expenses-card')?.addEventListener('click', (event) => {
+    if (event.target.closest('a,button,select')) return;
+    const card = event.currentTarget;
+    card.dataset.flipped = card.dataset.flipped === 'true' ? 'false' : 'true';
+  });
   document.documentElement.classList.add('api-hydrating');
   const API = '/api';
   const GROUP_ID = localStorage.getItem('krug_group_id');
@@ -326,6 +331,8 @@
     if (cards[1]) cards[1].textContent = money(dashboard.summary.user_expenses);
     if (cards[2]) cards[2].textContent = money(dashboard.summary.owed_to_user);
     if (cards[3]) cards[3].textContent = money(dashboard.summary.user_owes);
+    const totalValue = document.getElementById('group-total-value');
+    if (totalValue) totalValue.textContent = money(dashboard.summary.total_expenses);
     const subs = document.querySelectorAll('.stats .stat-sub');
     if (subs[2]) subs[2].firstChild.textContent = `${dashboard.summary.owed_to_user > 0 ? 'есть долги' : 'нет долгов'} `;
     if (subs[3]) subs[3].firstChild.textContent = `${dashboard.summary.user_owes > 0 ? 'есть долги' : 'нет долгов'} `;

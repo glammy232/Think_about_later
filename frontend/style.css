@@ -166,6 +166,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 }
 .stat-card:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(20,40,30,.06);}
 .stat-card.primary{ background: linear-gradient(135deg,var(--green),var(--green-dark)); color:#fff; border:none; }
+.flip-card{position:relative;cursor:pointer;perspective:800px;transform-style:preserve-3d}.flip-card:hover{transform:none}.flip-face{backface-visibility:hidden;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-height:104px}.flip-back{position:absolute;inset:18px 20px;transform:rotateY(180deg)}.flip-card[data-flipped="true"] .flip-front{transform:rotateY(180deg)}.flip-card[data-flipped="true"] .flip-back{transform:rotateY(360deg)}
 .stat-label{font-size:13px; opacity:.85; margin-bottom:6px;}
 .stat-value{font-size:23px; font-weight:700;}
 .stat-sub{font-size:12.5px; margin-top:8px; opacity:.75; display:flex; align-items:center; justify-content:space-between;}
