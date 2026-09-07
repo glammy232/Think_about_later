@@ -494,11 +494,11 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           <h1>Задолженности</h1>
           <p>Незакрытые долги между участниками квартиры</p>
         </div>
-        <button class="primary-btn compact-action" data-clickable data-open-debt-modal="in">
+        <div class="page-actions"><button class="primary-btn compact-action" data-clickable data-open-debt-modal="in">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           Добавить долг
         </button>
-        <button class="ghost-btn compact-action" id="settle-debt-btn" data-clickable>Погасить долг</button>
+        <button class="ghost-btn compact-action" id="settle-debt-btn" data-clickable><span aria-hidden="true">↗</span> Погасить долг</button></div>
       </div>
 
       <div class="panel" style="display:flex; flex-direction:column; gap:10px;">
