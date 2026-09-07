@@ -353,7 +353,9 @@
     if (balancePanel) {
       balancePanel.querySelectorAll('.bal-row').forEach((row) => row.remove());
       const moreButton = balancePanel.querySelector('a[href="balances.html"]');
-      (moreButton || balancePanel).insertAdjacentHTML('beforebegin', balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>');
+      const rows = balanceRows(data.balances) || '<p class="api-empty-state">Нет участников</p>';
+      if (moreButton) moreButton.insertAdjacentHTML('beforebegin', rows);
+      else balancePanel.insertAdjacentHTML('beforeend', rows);
     }
     if (location.pathname.endsWith('balances.html')) {
       const incoming = data.recommended_transfers.filter((item) => item.to_user_id === USER_ID);
