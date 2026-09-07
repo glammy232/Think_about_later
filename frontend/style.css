@@ -16,7 +16,7 @@
   --ease: cubic-bezier(.4,0,.2,1);
 }
 :root[data-theme="dark"]{
-  --bg:#121715; --card:#1b2420; --border:#2d3a34; --text:#edf4ef; --text-muted:#9eaba4;
+  --bg:#121715; --card:rgb(26, 50, 36); --border:#35503f; --text:#edf4ef; --text-muted:#aebdb4;
   --green-light:#203e30; --red-light:#452626; --amber-light:#443a25;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -67,6 +67,12 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .nav-item:hover{background:#f1f4f2;}
 :root[data-theme="dark"] .nav-item{color:#c4d0c9}
 :root[data-theme="dark"] .nav-item:hover{background:#26322c}
+:root[data-theme="dark"] .topbar,
+:root[data-theme="dark"] .sidebar,
+:root[data-theme="dark"] .panel,
+:root[data-theme="dark"] .stat,
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .icon-btn{background:rgb(26, 50, 36);border-color:var(--border)}
 :root[data-theme="dark"] .ai-promo{background:linear-gradient(180deg,#1d3227,#1b2d24);border-color:#31523f}
 :root[data-theme="dark"] .ai-promo p{color:#b1beb7}
 :root[data-theme="dark"] input,
