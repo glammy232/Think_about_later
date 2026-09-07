@@ -39,6 +39,7 @@ from app.services import (
 )
 from app.storage import storage
 from app.receipt_scanner import parse_receipt_qr_image, scan_receipt_image
+from app.notifications import check_group, list_notifications
 from starlette.concurrency import run_in_threadpool
 
 app = FastAPI(
@@ -96,6 +97,11 @@ def health():
         "storage": storage.__class__.__name__,
         "ai": "configured" if DeepSeekAssistant.configured() else "not_configured",
     }
+
+@app.get("/api/groups/{group_id}/notifications", tags=["notifications"])
+def get_notifications(group_id: str, user_id: str = Depends(current_user_id)):
+    require_group(group_id); check_group(storage, group_id, user_id)
+    return {"items": list_notifications(group_id, user_id)}
 
 
 @app.get("/api/groups/{group_id}", tags=["groups"])
