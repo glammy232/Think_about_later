@@ -169,6 +169,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .flip-card{position:relative;cursor:pointer;perspective:800px;transform-style:preserve-3d}.flip-card:hover{transform:none}.flip-face{backface-visibility:hidden;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-height:104px;transition:transform .45s ease}.flip-front .stat-value,.flip-back .stat-value{text-align:center;flex:1;display:flex;align-items:center;justify-content:center}.flip-back{position:absolute;inset:18px 20px;transform:rotateY(180deg)}.flip-card[data-flipped="true"] .flip-front{transform:rotateY(180deg)}.flip-card[data-flipped="true"] .flip-back{transform:rotateY(360deg)}.flip-card-icon{font-size:20px;line-height:1}
 .stat-label{font-size:13px; opacity:.85; margin-bottom:6px;}
 .stat-value{font-size:23px; font-weight:700;}
+.flip-front .stat-value,.flip-back .stat-value{text-align:left!important;justify-content:flex-start!important;}
 .stat-sub{font-size:12.5px; margin-top:8px; opacity:.75; display:flex; align-items:center; justify-content:space-between;}
 .stat-card.debt-plus .stat-value{color:var(--green);}
 .stat-card.debt-minus .stat-value{color:var(--red);}

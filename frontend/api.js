@@ -331,8 +331,6 @@
     if (cards[1]) cards[1].textContent = money(dashboard.summary.user_expenses);
     if (cards[2]) cards[2].textContent = money(dashboard.summary.owed_to_user);
     if (cards[3]) cards[3].textContent = money(dashboard.summary.user_owes);
-    const totalValue = document.getElementById('group-total-value');
-    if (totalValue) totalValue.textContent = money(dashboard.summary.total_expenses);
     const subs = document.querySelectorAll('.stats .stat-sub');
     if (subs[2]) subs[2].firstChild.textContent = `${dashboard.summary.owed_to_user > 0 ? 'есть долги' : 'нет долгов'} `;
     if (subs[3]) subs[3].firstChild.textContent = `${dashboard.summary.user_owes > 0 ? 'есть долги' : 'нет долгов'} `;
@@ -373,6 +371,8 @@
       const groupIncome = operations.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
       const groupExpenses = operations.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
       const groupTotal = groupIncome - groupExpenses;
+      const totalValue = document.getElementById('group-total-value');
+      if (totalValue) totalValue.textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
       if (values[0]) values[0].textContent = money(incomingTotal);
       if (values[1]) values[1].textContent = money(outgoingTotal);
       if (values[2]) values[2].textContent = `${groupTotal < 0 ? '−' : ''}${money(Math.abs(groupTotal))}`;
