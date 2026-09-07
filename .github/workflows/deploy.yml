@@ -58,6 +58,8 @@ jobs:
                 image: ghcr.io/${{ github.repository }}:latest
                 ports:
                   - "80:8000"
+                env_file:
+                  - .env
                 restart: always
                 environment:
                   - ENV=production
@@ -74,4 +76,3 @@ jobs:
             
             # Чистим старый докер-мусор
             docker image prune -f
-
