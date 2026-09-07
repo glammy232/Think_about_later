@@ -31,6 +31,7 @@ def build_system_prompt(
         ).isoformat(),
         "{{group_id}}": group_id,
         "{{currency}}": currency,
+        "{{group_currency}}": currency,
         "{{user_id}}": user.id,
         "{{user_name}}": user.name,
         "{{members_json}}": json.dumps(
