@@ -130,6 +130,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
   transition: background-color .2s var(--ease), transform .12s var(--ease);
 }
 .icon-btn:hover{background:#e9ede9;}
+.notification-trigger{position:relative}.notification-menu{display:none;position:absolute;right:0;top:42px;width:220px;padding:14px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 28px rgba(20,40,30,.12);z-index:20;text-align:left}.notification-menu b,.notification-menu span{display:block}.notification-menu span{margin-top:8px;color:var(--text-muted);font-size:12px}.notification-trigger.open .notification-menu{display:block}
 .icon-btn:active{transform:scale(.9);}
 .icon-btn svg{width:18px; height:18px; stroke:#4c554f;}
 .user-chip{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; cursor:pointer; padding:4px 6px; border-radius:10px; transition: background-color .2s var(--ease);}

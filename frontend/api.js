@@ -868,7 +868,13 @@
       bindOperationFilters();
       await bindSettings();
       bindAiChat(); bindReceipt();
-      document.querySelectorAll('.topbar-right .icon-btn').forEach((item) => item.remove());
+      document.querySelectorAll('.topbar-right .icon-btn').forEach((item, index) => { if (index > 0) item.remove(); });
+      document.querySelectorAll('.topbar-right .icon-btn').forEach((bell) => {
+        bell.classList.add('notification-trigger');
+        bell.innerHTML += '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>';
+        bell.addEventListener('click', (event) => { event.stopPropagation(); bell.classList.toggle('open'); });
+      });
+      document.addEventListener('click', () => document.querySelectorAll('.notification-trigger.open').forEach((el) => el.classList.remove('open')));
       const profileName = document.getElementById('api-user-name');
       if (profileName && !profileName.value) profileName.value = state.members.find((member) => member.id === USER_ID)?.name || 'Алексей';
       document.body.dataset.backend = 'connected';
