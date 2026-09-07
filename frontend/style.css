@@ -170,7 +170,9 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 .stat-label{font-size:13px; opacity:.85; margin-bottom:6px;}
 .stat-value{font-size:23px; font-weight:700;}
 .flip-front .stat-value,.flip-back .stat-value{text-align:left!important;justify-content:flex-start!important;}
+.flip-back{inset:0!important;padding:18px 20px;box-sizing:border-box;}
 .flip-back .stat-sub{position:absolute;left:0;right:0;bottom:0;display:flex!important;align-items:center;justify-content:space-between;opacity:.75;}
+.flip-back .stat-sub{left:20px;right:20px;bottom:18px;}
 .flip-back .stat-value{position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;}
 .stat-sub{font-size:12.5px; margin-top:8px; opacity:.75; display:flex; align-items:center; justify-content:space-between;}
 .stat-card.debt-plus .stat-value{color:var(--green);}
