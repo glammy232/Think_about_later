@@ -492,7 +492,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
       <div class="page-head">
         <div>
           <h1>Настройки</h1>
-          <p>Параметры квартиры и уведомлений</p>
+          <p>Название группы и профиль</p>
         </div>
       </div>
 
@@ -502,10 +502,6 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           <div class="field">
             <label>Название квартиры</label>
             <input type="text" value="Общая группа">
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label>Дата закрытия месяца</label>
-            <select><option>Последний день месяца</option><option>1 число следующего месяца</option></select>
           </div>
           <div class="field">
             <label>Ваше имя</label>
@@ -517,34 +513,7 @@ select{border:1px solid var(--border); border-radius:8px; font-size:12px; paddin
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-head"><h3>Уведомления</h3></div>
-          <div class="settings-row">
-            <div class="label"><b>Новые операции</b><span>Уведомлять, когда участник добавляет расход</span></div>
-            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-          </div>
-          <div class="settings-row">
-            <div class="label"><b>Напоминания о долгах</b><span>Раз в неделю напоминать о непогашенных долгах</span></div>
-            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-          </div>
-          <div class="settings-row">
-            <div class="label"><b>Советы AI-помощника</b><span>Присылать еженедельный разбор расходов</span></div>
-            <label class="switch"><input type="checkbox"><span class="slider"></span></label>
-          </div>
-        </div>
       </section>
-
-      <div class="panel">
-        <div class="panel-head"><h3>Участники и доступ</h3></div>
-        <div class="settings-row">
-          <div class="label"><b>Кто может добавлять операции</b><span>Все участники квартиры</span></div>
-          <select><option>Все участники</option><option>Только администраторы</option></select>
-        </div>
-        <div class="settings-row">
-          <div class="label"><b>Кто может приглашать новых участников</b><span>Только администратор</span></div>
-          <select><option>Только администраторы</option><option>Все участники</option></select>
-        </div>
-      </div>
 
     </div>
   </div>
