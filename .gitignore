@@ -9,10 +9,3 @@ __pycache__/
 # Supabase local runtime
 supabase/.branches
 supabase/.temp
-
-ai
-app
-supabase
-tests
-frontend
-README.md
