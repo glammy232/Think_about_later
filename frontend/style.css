@@ -95,6 +95,13 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 :root[data-theme="dark"] .api-profile-menu,
 :root[data-theme="dark"] .api-members-menu{background:#1b2420;color:var(--text);border-color:var(--border)}
 :root[data-theme="dark"] .api-ai-draft{background:#202a25;border-color:var(--border)}
+:root[data-theme="dark"] .ai-msg{background:#30383a;color:#edf2ef}
+:root[data-theme="dark"] .ai-msg.me{background:#1f6a48;color:#effff5}
+:root[data-theme="dark"] .api-ai-draft{background:#30383a;color:#edf2ef;border-color:#465457}
+:root[data-theme="dark"] .ai-suggest button{background:#30383a;color:#edf2ef;border-color:#465457}
+:root[data-theme="dark"] .ai-suggest button:hover{background:#394345}
+:root[data-theme="dark"] .ai-input{background:#252a28}
+:root[data-theme="dark"] .ai-input input{background:transparent;color:#edf2ef}
 :root[data-theme="dark"] .notification-items article{border-color:var(--border)}
 .nav-item.active{background: var(--green-light); color: var(--green-dark); font-weight:600;}
 .nav-item:active{transform: scale(.97);}
