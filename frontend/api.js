@@ -92,7 +92,7 @@
 
   async function request(path, options = {}) {
     const cacheKey = `${options.method || 'GET'}:${path}`;
-    if (!options.method || options.method === 'GET') {
+    if ((!options.method || options.method === 'GET') && !options.noCache) {
       if (apiCache.has(cacheKey)) return apiCache.get(cacheKey);
       try { const saved = localStorage.getItem(cachePrefix + cacheKey); if (saved) { const value = JSON.parse(saved); apiCache.set(cacheKey, value); return value; } } catch (_) {}
     }
@@ -113,7 +113,7 @@
       throw new Error(detail);
     }
     const result = response.status === 204 ? null : await response.json();
-    if (!options.method || options.method === 'GET') { apiCache.set(cacheKey, result); try { localStorage.setItem(cachePrefix + cacheKey, JSON.stringify(result)); } catch (_) {} }
+    if ((!options.method || options.method === 'GET') && !options.noCache) { apiCache.set(cacheKey, result); try { localStorage.setItem(cachePrefix + cacheKey, JSON.stringify(result)); } catch (_) {} }
     else { apiCache.clear(); Object.keys(localStorage).filter((key) => key.startsWith(cachePrefix)).forEach((key) => localStorage.removeItem(key)); }
     return result;
   }
@@ -134,7 +134,7 @@
   async function loadContext() {
     [state.group, state.members] = await Promise.all([
       request(`/groups/${GROUP_ID}`),
-      request(`/groups/${GROUP_ID}/members`),
+      request(`/groups/${GROUP_ID}/members`, { noCache: true }),
     ]);
     const avatarColors = ['#f6cf8e', '#f0b7b0', '#a9d3e5', '#cfe8d7', '#ded1ef', '#f2d5aa'];
     document.querySelectorAll('.household .avatars').forEach((avatars) => {
