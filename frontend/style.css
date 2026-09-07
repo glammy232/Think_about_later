@@ -68,6 +68,12 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 :root[data-theme="dark"] .nav-item{color:#c4d0c9}
 :root[data-theme="dark"] .nav-item:hover{background:#26322c}
 :root[data-theme="dark"] .icon-btn:hover{background:#30383a}
+:root[data-theme="dark"] .user-chip:hover,
+:root[data-theme="dark"] .tx-row:hover,
+:root[data-theme="dark"] .bal-row:hover,
+:root[data-theme="dark"] .data-table tbody tr:hover,
+:root[data-theme="dark"] .debt-card:hover,
+:root[data-theme="dark"] .modal-close:hover{background:#30383a}
 :root[data-theme="dark"] .household .avatars span{background:#3a4548!important;border-color:var(--card);color:#d1d9d5}
 :root[data-theme="dark"] .user-chip .av,
 :root[data-theme="dark"] .api-profile-avatar,
