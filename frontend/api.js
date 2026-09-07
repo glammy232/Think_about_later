@@ -5,7 +5,7 @@
       if (bell.querySelector('.notification-menu')) return;
       bell.classList.add('notification-trigger');
       bell.insertAdjacentHTML('beforeend', '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>');
-      bell.addEventListener('click', (event) => { event.stopPropagation(); bell.classList.toggle('open'); });
+      bell.addEventListener('click', async (event) => { event.stopPropagation(); bell.classList.toggle('open'); if (bell.classList.contains('open')) { try { const data = await request(`/groups/${GROUP_ID}/notifications`); const body = bell.querySelector('.notification-menu span'); if (body) body.textContent = data.items?.length ? data.items.map((n) => n.message).join(' ') : 'Новых уведомлений нет'; } catch (_) {} } });
     });
   }, { once: true });
   // Comments are not part of the simplified transaction flow.
