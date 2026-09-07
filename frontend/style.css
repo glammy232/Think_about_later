@@ -16,7 +16,7 @@
   --ease: cubic-bezier(.4,0,.2,1);
 }
 :root[data-theme="dark"]{
-  --bg:#121715; --card:rgb(26, 50, 36); --border:#35503f; --text:#edf4ef; --text-muted:#aebdb4;
+  --bg:#171b19; --card:#252a28; --border:#3a4440; --text:#edf2ef; --text-muted:#aeb8b3;
   --green-light:#203e30; --red-light:#452626; --amber-light:#443a25;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -72,7 +72,7 @@ nav{display:flex; flex-direction:column; gap:2px; flex:1;}
 :root[data-theme="dark"] .panel,
 :root[data-theme="dark"] .stat,
 :root[data-theme="dark"] .card,
-:root[data-theme="dark"] .icon-btn{background:rgb(26, 50, 36);border-color:var(--border)}
+:root[data-theme="dark"] .icon-btn{background:var(--card);border-color:var(--border)}
 :root[data-theme="dark"] .ai-promo{background:linear-gradient(180deg,#1d3227,#1b2d24);border-color:#31523f}
 :root[data-theme="dark"] .ai-promo p{color:#b1beb7}
 :root[data-theme="dark"] input,
