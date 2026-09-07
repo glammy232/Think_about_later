@@ -6,6 +6,7 @@ from threading import RLock
 from uuid import uuid4
 
 from openai import OpenAI
+import httpx
 from pydantic import ValidationError
 
 from app.ai_config import build_system_prompt, load_tool_definitions
@@ -155,6 +156,7 @@ class DeepSeekAssistant:
             "get_balances": self._balances,
             "get_forecast": self._forecast,
             "simulate_expense_change": self._simulate,
+            "search_events": self._search_events,
             "prepare_expense": self._prepare_expense,
             "prepare_income": self._prepare_income,
             "prepare_debt": self._prepare_debt,
@@ -290,6 +292,48 @@ class DeepSeekAssistant:
             "change_percent": change_percent,
             "scenario": round(current * (1 + change_percent / 100), 2),
         }
+
+    def _search_events(self, group_id, user_id, city, date_from=None, date_to=None,
+                       budget_limit=None, query=None):
+        # KudaGo provides a public events catalog without an API key.
+        locations = {
+            "екатеринбург": "ekb", "москва": "msk", "санкт-петербург": "spb",
+            "петербург": "spb", "казань": "kzn", "новосибирск": "nsk",
+            "нижний новгород": "nnv", "самара": "smr", "ростов-на-дону": "rnd",
+        }
+        location = locations.get(city.casefold().strip(), city.casefold().strip())
+        params = {"location": location, "page_size": 10, "is_pad": "true",
+                  "fields": "title,dates,place,price,site_url"}
+        if query:
+            params["text"] = query
+        if date_from:
+            params["actual_since"] = date_from
+        if date_to:
+            params["actual_until"] = date_to
+        try:
+            response = httpx.get(
+                "https://kudago.com/public-api/v1.4/events/",
+                params=params, timeout=8,
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except (httpx.HTTPError, ValueError):
+            return {"status": "unavailable", "events": []}
+        events = []
+        for item in payload.get("results", []):
+            price = item.get("price") or ""
+            if budget_limit is not None:
+                digits = "".join(ch for ch in str(price) if ch.isdigit())
+                if digits and float(digits) > budget_limit:
+                    continue
+            events.append({
+                "title": item.get("title", "Без названия"),
+                "dates": item.get("dates", []),
+                "price": price or "Цена не указана",
+                "url": item.get("site_url"),
+                "place": (item.get("place") or {}).get("title"),
+            })
+        return {"status": "ok" if events else "no_data", "events": events}
 
     def _validate_members(self, group_id: str, ids: list[str]):
         members = {u.id for u in self.storage.list_users(group_id)}
