@@ -1,5 +1,13 @@
 /* Backend integration for the static hackathon UI. */
 (() => {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.topbar-right .icon-btn:first-child').forEach((bell) => {
+      if (bell.querySelector('.notification-menu')) return;
+      bell.classList.add('notification-trigger');
+      bell.insertAdjacentHTML('beforeend', '<div class="notification-menu"><b>Уведомления</b><span>Новых уведомлений нет</span></div>');
+      bell.addEventListener('click', (event) => { event.stopPropagation(); bell.classList.toggle('open'); });
+    });
+  }, { once: true });
   // Comments are not part of the simplified transaction flow.
   document.querySelectorAll('#modal-comment, #debt-comment').forEach((el) => el.closest('.field')?.remove());
   document.getElementById('total-expenses-card')?.addEventListener('click', (event) => {
