@@ -478,7 +478,7 @@
         const topY = 15;
         const midY = height / 2;
         const bottomY = height - 15;
-        const grid = `<g class="trend-grid"><line x1="${chartLeft}" x2="${width}" y1="${topY}" y2="${topY}"/><line x1="${chartLeft}" x2="${width}" y1="${midY}" y2="${midY}"/><line x1="${chartLeft}" x2="${width}" y1="${bottomY}" y2="${bottomY}"/></g><g class="trend-axis-labels"><text x="0" y="${topY + 4}">${escapeHtml(money(max))}</text><text x="0" y="${midY + 4}">${escapeHtml(money(max / 2))}</text><text x="0" y="${bottomY + 4}">0 ₽</text></g>`;
+        const grid = `<g class="trend-grid"><line x1="${chartLeft}" x2="${width}" y1="${topY}" y2="${topY}"/><line x1="${chartLeft}" x2="${width}" y1="${midY}" y2="${midY}"/><line x1="${chartLeft}" x2="${width}" y1="${bottomY}" y2="${bottomY}"/></g><g class="trend-axis-labels"><text x="0" y="${topY + 5}" style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:10px;font-weight:400">${escapeHtml(money(max))}</text><text x="0" y="${midY + 5}" style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:10px;font-weight:400">${escapeHtml(money(max / 2))}</text><text x="0" y="${bottomY + 5}" style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:10px;font-weight:400">0 ₽</text></g>`;
         trendChart.innerHTML = `<defs><linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f9b61"/><stop offset="1" stop-color="#57c58b"/></linearGradient></defs>${grid}` + values.map((item, index) => {
           const barHeight = item.amount ? Math.max(3, item.amount / max * (height - 30)) : 0;
           const x = chartLeft + index * slot + (slot - barWidth) / 2;
