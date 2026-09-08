@@ -70,7 +70,7 @@
 ```bash
 # Клонирование
 git clone https://github.com/glammy232/potom_pridumaem.git
-cd krug
+cd potom_pridumaem
 
 # Запуск через Docker (рекомендуется)
 docker compose up --build
